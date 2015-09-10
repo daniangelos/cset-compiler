@@ -1,0 +1,7 @@
+int main()
+{
+	set<<int, bool>> 23foo;
+	print("Token \ " invalido");
+
+	return -1;
+}

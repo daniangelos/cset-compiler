@@ -1,0 +1,9 @@
+set<<pair<<int, int>> foo (set<<int>> A, set<<int>> B, int c)
+{
+	set<< pair<<int,int>> >> result = {};
+	int a = 12;
+
+	if (c <?> A * B) result = A <*> B;
+
+	return result;
+}

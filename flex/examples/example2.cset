@@ -1,0 +1,13 @@
+int main() {
+	
+	set<<int>> nat = {1, 2, 3};
+	pair<<int, bool>> bah = (2, false);
+	bool pert = bah <?> nat <*> {true, false};
+	float -12.4;
+	char b = 'a';
+
+	print(bool);
+
+	return 0;
+
+}
