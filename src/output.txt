@@ -1,0 +1,39 @@
+
+* ----------- Token(s) lido(s) ----------- *
+
+Linha: 1 	Token: KEYWORD_INT     		Conteudo: int
+Linha: 1 	Token: ID              		Conteudo: main
+Linha: 1 	Token: OPEN_P          		Conteudo: (
+Linha: 1 	Token: CLOSE_P         		Conteudo: )
+Linha: 1 	Token: OPEN_BRACKET    		Conteudo: {
+Linha: 3 	Token: KEYWORD_SET     		Conteudo: set
+Linha: 3 	Token: DOUBLE_BR_OP    		Conteudo: <<
+Linha: 3 	Token: KEYWORD_INT     		Conteudo: int
+Linha: 3 	Token: DOUBLE_BR_CL    		Conteudo: >>
+Linha: 3 	Token: ID              		Conteudo: nat
+Linha: 3 	Token: EQUAL           		Conteudo: =
+Linha: 3 	Token: OPEN_BRACKET    		Conteudo: {
+Linha: 3 	Token: INT_C           		Conteudo: 1
+Linha: 3 	Token: COMMA           		Conteudo: ,
+Linha: 3 	Token: INT_C           		Conteudo: 2
+Linha: 3 	Token: COMMA           		Conteudo: ,
+Linha: 3 	Token: INT_C           		Conteudo: 3
+Linha: 3 	Token: CLOSE_BRACKET   		Conteudo: }
+Linha: 3 	Token: SEMI_COLON      		Conteudo: ;
+Linha: 4 	Token: KEYWORD_BOOL    		Conteudo: bool
+Linha: 4 	Token: ID              		Conteudo: pert
+Linha: 4 	Token: EQUAL           		Conteudo: =
+Linha: 4 	Token: INT_C           		Conteudo: 2
+Linha: 4 	Token: PERTINENCE      		Conteudo: <?>
+Linha: 4 	Token: ID              		Conteudo: nat
+Linha: 4 	Token: SEMI_COLON      		Conteudo: ;
+Linha: 6 	Token: KEYWORD_PRINT   		Conteudo: print
+Linha: 6 	Token: OPEN_P          		Conteudo: (
+Linha: 6 	Token: ID              		Conteudo: pert
+Linha: 6 	Token: CLOSE_P         		Conteudo: )
+Linha: 6 	Token: SEMI_COLON      		Conteudo: ;
+Linha: 8 	Token: KEYWORD_RETURN  		Conteudo: return
+Linha: 8 	Token: INT_C           		Conteudo: 0
+Linha: 8 	Token: SEMI_COLON      		Conteudo: ;
+Linha: 9 	Token: CLOSE_BRACKET   		Conteudo: }
+
