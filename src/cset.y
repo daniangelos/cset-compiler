@@ -54,7 +54,7 @@ type			: INT
 				;
 
 stmtlist 		: stmtlist stmt
-		   		| 
+		   		| stmt 
 				;
 
 stmt			: whilestmt
@@ -64,7 +64,6 @@ stmt			: whilestmt
 				| declaration ';'
 				| io ';'
 				| returnstmt ';'
-				|
 				;
 
 whilestmt		: WHILE '(' expr ')' stmt
