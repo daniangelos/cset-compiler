@@ -25,6 +25,9 @@ void yyerror(const char *str)
 %token BOOL_VALUE
 %token NUM_VALUE
 %token CHAR_VALUE
+%token OR
+
+%right ELSE
 
 %%
 
@@ -112,7 +115,7 @@ compare			: "=="
 				| "!="
 				;
 
-logicalor		: logicaland "||" logicalor
+logicalor		: logicaland OR logicalor
 		   		| logicaland
 				;
 

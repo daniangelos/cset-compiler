@@ -45,24 +45,25 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    ELSE = 258,
-    DIGIT = 259,
-    STR = 260,
-    ID = 261,
-    INT = 262,
-    FLOAT = 263,
-    CHAR = 264,
-    BOOL = 265,
-    SET = 266,
-    PAIR = 267,
-    WHILE = 268,
-    IF = 269,
+    DIGIT = 258,
+    STR = 259,
+    ID = 260,
+    INT = 261,
+    FLOAT = 262,
+    CHAR = 263,
+    BOOL = 264,
+    SET = 265,
+    PAIR = 266,
+    WHILE = 267,
+    IF = 268,
+    ELSE = 269,
     PRINT = 270,
     READ = 271,
     RETURN = 272,
     BOOL_VALUE = 273,
     NUM_VALUE = 274,
-    CHAR_VALUE = 275
+    CHAR_VALUE = 275,
+    OR = 276
   };
 #endif
 
