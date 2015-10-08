@@ -1,0 +1,2051 @@
+Grammar
+
+    0 $accept: program $end
+
+    1 program: outset
+
+    2 outset: outset function
+    3       | function
+
+    4 function: type ID '(' arglist ')' compoundstmt
+    5         | error '}'
+
+    6 arglist: arg
+    7        | arglist ',' arg
+    8        | %empty
+
+    9 arg: type ID
+   10    | error ' '
+
+   11 compoundstmt: '{' stmtlist '}'
+
+   12 type: K_INT
+   13     | K_FLOAT
+   14     | K_CHAR
+   15     | K_BOOL
+   16     | K_SET DOUBLE_BR_OP type DOUBLE_BR_CL
+   17     | K_PAIR DOUBLE_BR_OP type ',' type DOUBLE_BR_CL
+
+   18 stmtlist: stmtlist stmt
+   19         | stmt
+
+   20 stmt: whilestmt
+   21     | expr ';'
+   22     | ifstmt
+   23     | compoundstmt
+   24     | declaration ';'
+   25     | io ';'
+   26     | returnstmt ';'
+
+   27 whilestmt: K_WHILE '(' expr ')' stmt
+   28          | error '}'
+
+   29 ifstmt: K_IF '(' expr ')' compoundstmt
+   30       | K_IF '(' expr ')' compoundstmt elsepart
+
+   31 elsepart: K_ELSE stmt
+
+   32 declaration: type identlist
+   33            | type attr
+   34            | error ';'
+
+   35 io: K_PRINT '(' STR ')'
+   36   | K_PRINT '(' ID ')'
+   37   | K_READ '(' ID ')'
+
+   38 returnstmt: K_RETURN expr
+   39           | K_RETURN
+
+   40 expr: attr
+   41     | rvalue
+   42     | funccall
+
+   43 attr: ID '=' expr
+
+   44 identlist: ID ',' identlist
+   45          | ID
+
+   46 rvalue: rvalue compare logicalor
+   47       | logicalor
+
+   48 compare: COMPARE
+   49        | '<'
+   50        | '>'
+   51        | LE
+   52        | GE
+   53        | DIFFERENCE
+
+   54 logicalor: logicaland LOGICAL_OR logicalor
+   55          | logicaland
+
+   56 logicaland: pertinence LOGICAL_AND logicaland
+   57           | pertinence
+
+   58 pertinence: pertinence PERTINENCE cartesian
+   59           | cartesian
+
+   60 cartesian: cartesian CARTESIAN addition
+   61          | addition
+
+   62 addition: addition '+' multiplication
+   63         | addition '-' multiplication
+   64         | multiplication
+
+   65 multiplication: multiplication '*' term
+   66               | multiplication '/' term
+   67               | term
+
+   68 term: '(' expr ')'
+   69     | '-' term
+   70     | '+' term
+   71     | '$' term
+   72     | '!' term
+   73     | '{' factorlist '}'
+   74     | '(' pair ')'
+   75     | factor
+
+   76 factor: ID
+   77       | BOOL_VALUE
+   78       | INT_VALUE
+   79       | FLOAT_VALUE
+   80       | CHAR_VALUE
+
+   81 factorlist: factorlist ',' factor
+   82           | factor
+   83           | %empty
+
+   84 pair: factor ',' factor
+
+   85 funccall: ID '(' identlist ')'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+' ' (32) 10
+'!' (33) 72
+'$' (36) 71
+'(' (40) 4 27 29 30 35 36 37 68 74 85
+')' (41) 4 27 29 30 35 36 37 68 74 85
+'*' (42) 65
+'+' (43) 62 70
+',' (44) 7 17 44 81 84
+'-' (45) 63 69
+'/' (47) 66
+';' (59) 21 24 25 26 34
+'<' (60) 49
+'=' (61) 43
+'>' (62) 50
+'{' (123) 11 73
+'}' (125) 5 11 28 73
+error (256) 5 10 28 34
+STR (258) 35
+ID (259) 4 9 36 37 43 44 45 76 85
+K_INT (260) 12
+K_FLOAT (261) 13
+K_CHAR (262) 14
+K_BOOL (263) 15
+K_SET (264) 16
+K_PAIR (265) 17
+K_WHILE (266) 27
+K_IF (267) 29 30
+K_ELSE (268) 31
+K_PRINT (269) 35 36
+K_READ (270) 37
+K_RETURN (271) 38 39
+BOOL_VALUE (272) 77
+INT_VALUE (273) 78
+FLOAT_VALUE (274) 79
+CHAR_VALUE (275) 80
+DOUBLE_BR_OP (276) 16 17
+DOUBLE_BR_CL (277) 16 17
+COMPARE (278) 48
+DIFFERENCE (279) 53
+LE (280) 51
+GE (281) 52
+LOGICAL_OR (282) 54
+LOGICAL_AND (283) 56
+PERTINENCE (284) 58
+CARTESIAN (285) 60
+
+
+Nonterminals, with rules where they appear
+
+$accept (47)
+    on left: 0
+program (48)
+    on left: 1, on right: 0
+outset (49)
+    on left: 2 3, on right: 1 2
+function (50)
+    on left: 4 5, on right: 2 3
+arglist (51)
+    on left: 6 7 8, on right: 4 7
+arg (52)
+    on left: 9 10, on right: 6 7
+compoundstmt (53)
+    on left: 11, on right: 4 23 29 30
+type (54)
+    on left: 12 13 14 15 16 17, on right: 4 9 16 17 32 33
+stmtlist (55)
+    on left: 18 19, on right: 11 18
+stmt (56)
+    on left: 20 21 22 23 24 25 26, on right: 18 19 27 31
+whilestmt (57)
+    on left: 27 28, on right: 20
+ifstmt (58)
+    on left: 29 30, on right: 22
+elsepart (59)
+    on left: 31, on right: 30
+declaration (60)
+    on left: 32 33 34, on right: 24
+io (61)
+    on left: 35 36 37, on right: 25
+returnstmt (62)
+    on left: 38 39, on right: 26
+expr (63)
+    on left: 40 41 42, on right: 21 27 29 30 38 43 68
+attr (64)
+    on left: 43, on right: 33 40
+identlist (65)
+    on left: 44 45, on right: 32 44 85
+rvalue (66)
+    on left: 46 47, on right: 41 46
+compare (67)
+    on left: 48 49 50 51 52 53, on right: 46
+logicalor (68)
+    on left: 54 55, on right: 46 47 54
+logicaland (69)
+    on left: 56 57, on right: 54 55 56
+pertinence (70)
+    on left: 58 59, on right: 56 57 58
+cartesian (71)
+    on left: 60 61, on right: 58 59 60
+addition (72)
+    on left: 62 63 64, on right: 60 61 62 63
+multiplication (73)
+    on left: 65 66 67, on right: 62 63 64 65 66
+term (74)
+    on left: 68 69 70 71 72 73 74 75, on right: 65 66 67 69 70 71 72
+factor (75)
+    on left: 76 77 78 79 80, on right: 75 81 82 84
+factorlist (76)
+    on left: 81 82 83, on right: 73 81
+pair (77)
+    on left: 84, on right: 74
+funccall (78)
+    on left: 85, on right: 42
+
+
+State 0
+
+    0 $accept: . program $end
+
+    error    shift, and go to state 1
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    program   go to state 8
+    outset    go to state 9
+    function  go to state 10
+    type      go to state 11
+
+
+State 1
+
+    5 function: error . '}'
+
+    '}'  shift, and go to state 12
+
+
+State 2
+
+   12 type: K_INT .
+
+    $default  reduce using rule 12 (type)
+
+
+State 3
+
+   13 type: K_FLOAT .
+
+    $default  reduce using rule 13 (type)
+
+
+State 4
+
+   14 type: K_CHAR .
+
+    $default  reduce using rule 14 (type)
+
+
+State 5
+
+   15 type: K_BOOL .
+
+    $default  reduce using rule 15 (type)
+
+
+State 6
+
+   16 type: K_SET . DOUBLE_BR_OP type DOUBLE_BR_CL
+
+    DOUBLE_BR_OP  shift, and go to state 13
+
+
+State 7
+
+   17 type: K_PAIR . DOUBLE_BR_OP type ',' type DOUBLE_BR_CL
+
+    DOUBLE_BR_OP  shift, and go to state 14
+
+
+State 8
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 15
+
+
+State 9
+
+    1 program: outset .
+    2 outset: outset . function
+
+    error    shift, and go to state 1
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    $end  reduce using rule 1 (program)
+
+    function  go to state 16
+    type      go to state 11
+
+
+State 10
+
+    3 outset: function .
+
+    $default  reduce using rule 3 (outset)
+
+
+State 11
+
+    4 function: type . ID '(' arglist ')' compoundstmt
+
+    ID  shift, and go to state 17
+
+
+State 12
+
+    5 function: error '}' .
+
+    $default  reduce using rule 5 (function)
+
+
+State 13
+
+   16 type: K_SET DOUBLE_BR_OP . type DOUBLE_BR_CL
+
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    type  go to state 18
+
+
+State 14
+
+   17 type: K_PAIR DOUBLE_BR_OP . type ',' type DOUBLE_BR_CL
+
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    type  go to state 19
+
+
+State 15
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 16
+
+    2 outset: outset function .
+
+    $default  reduce using rule 2 (outset)
+
+
+State 17
+
+    4 function: type ID . '(' arglist ')' compoundstmt
+
+    '('  shift, and go to state 20
+
+
+State 18
+
+   16 type: K_SET DOUBLE_BR_OP type . DOUBLE_BR_CL
+
+    DOUBLE_BR_CL  shift, and go to state 21
+
+
+State 19
+
+   17 type: K_PAIR DOUBLE_BR_OP type . ',' type DOUBLE_BR_CL
+
+    ','  shift, and go to state 22
+
+
+State 20
+
+    4 function: type ID '(' . arglist ')' compoundstmt
+
+    error    shift, and go to state 23
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    ')'  reduce using rule 8 (arglist)
+    ','  reduce using rule 8 (arglist)
+
+    arglist  go to state 24
+    arg      go to state 25
+    type     go to state 26
+
+
+State 21
+
+   16 type: K_SET DOUBLE_BR_OP type DOUBLE_BR_CL .
+
+    $default  reduce using rule 16 (type)
+
+
+State 22
+
+   17 type: K_PAIR DOUBLE_BR_OP type ',' . type DOUBLE_BR_CL
+
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    type  go to state 27
+
+
+State 23
+
+   10 arg: error . ' '
+
+    ' '  shift, and go to state 28
+
+
+State 24
+
+    4 function: type ID '(' arglist . ')' compoundstmt
+    7 arglist: arglist . ',' arg
+
+    ')'  shift, and go to state 29
+    ','  shift, and go to state 30
+
+
+State 25
+
+    6 arglist: arg .
+
+    $default  reduce using rule 6 (arglist)
+
+
+State 26
+
+    9 arg: type . ID
+
+    ID  shift, and go to state 31
+
+
+State 27
+
+   17 type: K_PAIR DOUBLE_BR_OP type ',' type . DOUBLE_BR_CL
+
+    DOUBLE_BR_CL  shift, and go to state 32
+
+
+State 28
+
+   10 arg: error ' ' .
+
+    $default  reduce using rule 10 (arg)
+
+
+State 29
+
+    4 function: type ID '(' arglist ')' . compoundstmt
+
+    '{'  shift, and go to state 33
+
+    compoundstmt  go to state 34
+
+
+State 30
+
+    7 arglist: arglist ',' . arg
+
+    error    shift, and go to state 23
+    K_INT    shift, and go to state 2
+    K_FLOAT  shift, and go to state 3
+    K_CHAR   shift, and go to state 4
+    K_BOOL   shift, and go to state 5
+    K_SET    shift, and go to state 6
+    K_PAIR   shift, and go to state 7
+
+    arg   go to state 35
+    type  go to state 26
+
+
+State 31
+
+    9 arg: type ID .
+
+    $default  reduce using rule 9 (arg)
+
+
+State 32
+
+   17 type: K_PAIR DOUBLE_BR_OP type ',' type DOUBLE_BR_CL .
+
+    $default  reduce using rule 17 (type)
+
+
+State 33
+
+   11 compoundstmt: '{' . stmtlist '}'
+
+    error        shift, and go to state 36
+    ID           shift, and go to state 37
+    K_INT        shift, and go to state 2
+    K_FLOAT      shift, and go to state 3
+    K_CHAR       shift, and go to state 4
+    K_BOOL       shift, and go to state 5
+    K_SET        shift, and go to state 6
+    K_PAIR       shift, and go to state 7
+    K_WHILE      shift, and go to state 38
+    K_IF         shift, and go to state 39
+    K_PRINT      shift, and go to state 40
+    K_READ       shift, and go to state 41
+    K_RETURN     shift, and go to state 42
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 48
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    compoundstmt    go to state 53
+    type            go to state 54
+    stmtlist        go to state 55
+    stmt            go to state 56
+    whilestmt       go to state 57
+    ifstmt          go to state 58
+    declaration     go to state 59
+    io              go to state 60
+    returnstmt      go to state 61
+    expr            go to state 62
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 34
+
+    4 function: type ID '(' arglist ')' compoundstmt .
+
+    $default  reduce using rule 4 (function)
+
+
+State 35
+
+    7 arglist: arglist ',' arg .
+
+    $default  reduce using rule 7 (arglist)
+
+
+State 36
+
+   28 whilestmt: error . '}'
+   34 declaration: error . ';'
+
+    '}'  shift, and go to state 74
+    ';'  shift, and go to state 75
+
+
+State 37
+
+   43 attr: ID . '=' expr
+   76 factor: ID .
+   85 funccall: ID . '(' identlist ')'
+
+    '('  shift, and go to state 76
+    '='  shift, and go to state 77
+
+    $default  reduce using rule 76 (factor)
+
+
+State 38
+
+   27 whilestmt: K_WHILE . '(' expr ')' stmt
+
+    '('  shift, and go to state 78
+
+
+State 39
+
+   29 ifstmt: K_IF . '(' expr ')' compoundstmt
+   30       | K_IF . '(' expr ')' compoundstmt elsepart
+
+    '('  shift, and go to state 79
+
+
+State 40
+
+   35 io: K_PRINT . '(' STR ')'
+   36   | K_PRINT . '(' ID ')'
+
+    '('  shift, and go to state 80
+
+
+State 41
+
+   37 io: K_READ . '(' ID ')'
+
+    '('  shift, and go to state 81
+
+
+State 42
+
+   38 returnstmt: K_RETURN . expr
+   39           | K_RETURN .
+
+    ID           shift, and go to state 37
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    $default  reduce using rule 39 (returnstmt)
+
+    expr            go to state 83
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 43
+
+   77 factor: BOOL_VALUE .
+
+    $default  reduce using rule 77 (factor)
+
+
+State 44
+
+   78 factor: INT_VALUE .
+
+    $default  reduce using rule 78 (factor)
+
+
+State 45
+
+   79 factor: FLOAT_VALUE .
+
+    $default  reduce using rule 79 (factor)
+
+
+State 46
+
+   80 factor: CHAR_VALUE .
+
+    $default  reduce using rule 80 (factor)
+
+
+State 47
+
+   68 term: '(' . expr ')'
+   74     | '(' . pair ')'
+
+    ID           shift, and go to state 37
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    expr            go to state 84
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 85
+    pair            go to state 86
+    funccall        go to state 73
+
+
+State 48
+
+   11 compoundstmt: '{' . stmtlist '}'
+   73 term: '{' . factorlist '}'
+
+    error        shift, and go to state 36
+    ID           shift, and go to state 37
+    K_INT        shift, and go to state 2
+    K_FLOAT      shift, and go to state 3
+    K_CHAR       shift, and go to state 4
+    K_BOOL       shift, and go to state 5
+    K_SET        shift, and go to state 6
+    K_PAIR       shift, and go to state 7
+    K_WHILE      shift, and go to state 38
+    K_IF         shift, and go to state 39
+    K_PRINT      shift, and go to state 40
+    K_READ       shift, and go to state 41
+    K_RETURN     shift, and go to state 42
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 48
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    '}'  reduce using rule 83 (factorlist)
+    ','  reduce using rule 83 (factorlist)
+
+    compoundstmt    go to state 53
+    type            go to state 54
+    stmtlist        go to state 55
+    stmt            go to state 56
+    whilestmt       go to state 57
+    ifstmt          go to state 58
+    declaration     go to state 59
+    io              go to state 60
+    returnstmt      go to state 61
+    expr            go to state 62
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 87
+    factorlist      go to state 88
+    funccall        go to state 73
+
+
+State 49
+
+   70 term: '+' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 90
+    factor  go to state 72
+
+
+State 50
+
+   69 term: '-' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 91
+    factor  go to state 72
+
+
+State 51
+
+   71 term: '$' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 92
+    factor  go to state 72
+
+
+State 52
+
+   72 term: '!' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 93
+    factor  go to state 72
+
+
+State 53
+
+   23 stmt: compoundstmt .
+
+    $default  reduce using rule 23 (stmt)
+
+
+State 54
+
+   32 declaration: type . identlist
+   33            | type . attr
+
+    ID  shift, and go to state 94
+
+    attr       go to state 95
+    identlist  go to state 96
+
+
+State 55
+
+   11 compoundstmt: '{' stmtlist . '}'
+   18 stmtlist: stmtlist . stmt
+
+    error        shift, and go to state 36
+    ID           shift, and go to state 37
+    K_INT        shift, and go to state 2
+    K_FLOAT      shift, and go to state 3
+    K_CHAR       shift, and go to state 4
+    K_BOOL       shift, and go to state 5
+    K_SET        shift, and go to state 6
+    K_PAIR       shift, and go to state 7
+    K_WHILE      shift, and go to state 38
+    K_IF         shift, and go to state 39
+    K_PRINT      shift, and go to state 40
+    K_READ       shift, and go to state 41
+    K_RETURN     shift, and go to state 42
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '}'          shift, and go to state 97
+    '{'          shift, and go to state 48
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    compoundstmt    go to state 53
+    type            go to state 54
+    stmt            go to state 98
+    whilestmt       go to state 57
+    ifstmt          go to state 58
+    declaration     go to state 59
+    io              go to state 60
+    returnstmt      go to state 61
+    expr            go to state 62
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 56
+
+   19 stmtlist: stmt .
+
+    $default  reduce using rule 19 (stmtlist)
+
+
+State 57
+
+   20 stmt: whilestmt .
+
+    $default  reduce using rule 20 (stmt)
+
+
+State 58
+
+   22 stmt: ifstmt .
+
+    $default  reduce using rule 22 (stmt)
+
+
+State 59
+
+   24 stmt: declaration . ';'
+
+    ';'  shift, and go to state 99
+
+
+State 60
+
+   25 stmt: io . ';'
+
+    ';'  shift, and go to state 100
+
+
+State 61
+
+   26 stmt: returnstmt . ';'
+
+    ';'  shift, and go to state 101
+
+
+State 62
+
+   21 stmt: expr . ';'
+
+    ';'  shift, and go to state 102
+
+
+State 63
+
+   40 expr: attr .
+
+    $default  reduce using rule 40 (expr)
+
+
+State 64
+
+   41 expr: rvalue .
+   46 rvalue: rvalue . compare logicalor
+
+    COMPARE     shift, and go to state 103
+    DIFFERENCE  shift, and go to state 104
+    LE          shift, and go to state 105
+    GE          shift, and go to state 106
+    '<'         shift, and go to state 107
+    '>'         shift, and go to state 108
+
+    $default  reduce using rule 41 (expr)
+
+    compare  go to state 109
+
+
+State 65
+
+   47 rvalue: logicalor .
+
+    $default  reduce using rule 47 (rvalue)
+
+
+State 66
+
+   54 logicalor: logicaland . LOGICAL_OR logicalor
+   55          | logicaland .
+
+    LOGICAL_OR  shift, and go to state 110
+
+    $default  reduce using rule 55 (logicalor)
+
+
+State 67
+
+   56 logicaland: pertinence . LOGICAL_AND logicaland
+   57           | pertinence .
+   58 pertinence: pertinence . PERTINENCE cartesian
+
+    LOGICAL_AND  shift, and go to state 111
+    PERTINENCE   shift, and go to state 112
+
+    $default  reduce using rule 57 (logicaland)
+
+
+State 68
+
+   59 pertinence: cartesian .
+   60 cartesian: cartesian . CARTESIAN addition
+
+    CARTESIAN  shift, and go to state 113
+
+    $default  reduce using rule 59 (pertinence)
+
+
+State 69
+
+   61 cartesian: addition .
+   62 addition: addition . '+' multiplication
+   63         | addition . '-' multiplication
+
+    '+'  shift, and go to state 114
+    '-'  shift, and go to state 115
+
+    $default  reduce using rule 61 (cartesian)
+
+
+State 70
+
+   64 addition: multiplication .
+   65 multiplication: multiplication . '*' term
+   66               | multiplication . '/' term
+
+    '*'  shift, and go to state 116
+    '/'  shift, and go to state 117
+
+    $default  reduce using rule 64 (addition)
+
+
+State 71
+
+   67 multiplication: term .
+
+    $default  reduce using rule 67 (multiplication)
+
+
+State 72
+
+   75 term: factor .
+
+    $default  reduce using rule 75 (term)
+
+
+State 73
+
+   42 expr: funccall .
+
+    $default  reduce using rule 42 (expr)
+
+
+State 74
+
+   28 whilestmt: error '}' .
+
+    $default  reduce using rule 28 (whilestmt)
+
+
+State 75
+
+   34 declaration: error ';' .
+
+    $default  reduce using rule 34 (declaration)
+
+
+State 76
+
+   85 funccall: ID '(' . identlist ')'
+
+    ID  shift, and go to state 118
+
+    identlist  go to state 119
+
+
+State 77
+
+   43 attr: ID '=' . expr
+
+    ID           shift, and go to state 37
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    expr            go to state 120
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 78
+
+   27 whilestmt: K_WHILE '(' . expr ')' stmt
+
+    ID           shift, and go to state 37
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    expr            go to state 121
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 79
+
+   29 ifstmt: K_IF '(' . expr ')' compoundstmt
+   30       | K_IF '(' . expr ')' compoundstmt elsepart
+
+    ID           shift, and go to state 37
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    expr            go to state 122
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 80
+
+   35 io: K_PRINT '(' . STR ')'
+   36   | K_PRINT '(' . ID ')'
+
+    STR  shift, and go to state 123
+    ID   shift, and go to state 124
+
+
+State 81
+
+   37 io: K_READ '(' . ID ')'
+
+    ID  shift, and go to state 125
+
+
+State 82
+
+   73 term: '{' . factorlist '}'
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+
+    $default  reduce using rule 83 (factorlist)
+
+    factor      go to state 126
+    factorlist  go to state 88
+
+
+State 83
+
+   38 returnstmt: K_RETURN expr .
+
+    $default  reduce using rule 38 (returnstmt)
+
+
+State 84
+
+   68 term: '(' expr . ')'
+
+    ')'  shift, and go to state 127
+
+
+State 85
+
+   75 term: factor .
+   84 pair: factor . ',' factor
+
+    ','  shift, and go to state 128
+
+    $default  reduce using rule 75 (term)
+
+
+State 86
+
+   74 term: '(' pair . ')'
+
+    ')'  shift, and go to state 129
+
+
+State 87
+
+   75 term: factor .
+   82 factorlist: factor .
+
+    '}'       reduce using rule 82 (factorlist)
+    ','       reduce using rule 82 (factorlist)
+    $default  reduce using rule 75 (term)
+
+
+State 88
+
+   73 term: '{' factorlist . '}'
+   81 factorlist: factorlist . ',' factor
+
+    '}'  shift, and go to state 130
+    ','  shift, and go to state 131
+
+
+State 89
+
+   76 factor: ID .
+
+    $default  reduce using rule 76 (factor)
+
+
+State 90
+
+   70 term: '+' term .
+
+    $default  reduce using rule 70 (term)
+
+
+State 91
+
+   69 term: '-' term .
+
+    $default  reduce using rule 69 (term)
+
+
+State 92
+
+   71 term: '$' term .
+
+    $default  reduce using rule 71 (term)
+
+
+State 93
+
+   72 term: '!' term .
+
+    $default  reduce using rule 72 (term)
+
+
+State 94
+
+   43 attr: ID . '=' expr
+   44 identlist: ID . ',' identlist
+   45          | ID .
+
+    ','  shift, and go to state 132
+    '='  shift, and go to state 77
+
+    $default  reduce using rule 45 (identlist)
+
+
+State 95
+
+   33 declaration: type attr .
+
+    $default  reduce using rule 33 (declaration)
+
+
+State 96
+
+   32 declaration: type identlist .
+
+    $default  reduce using rule 32 (declaration)
+
+
+State 97
+
+   11 compoundstmt: '{' stmtlist '}' .
+
+    $default  reduce using rule 11 (compoundstmt)
+
+
+State 98
+
+   18 stmtlist: stmtlist stmt .
+
+    $default  reduce using rule 18 (stmtlist)
+
+
+State 99
+
+   24 stmt: declaration ';' .
+
+    $default  reduce using rule 24 (stmt)
+
+
+State 100
+
+   25 stmt: io ';' .
+
+    $default  reduce using rule 25 (stmt)
+
+
+State 101
+
+   26 stmt: returnstmt ';' .
+
+    $default  reduce using rule 26 (stmt)
+
+
+State 102
+
+   21 stmt: expr ';' .
+
+    $default  reduce using rule 21 (stmt)
+
+
+State 103
+
+   48 compare: COMPARE .
+
+    $default  reduce using rule 48 (compare)
+
+
+State 104
+
+   53 compare: DIFFERENCE .
+
+    $default  reduce using rule 53 (compare)
+
+
+State 105
+
+   51 compare: LE .
+
+    $default  reduce using rule 51 (compare)
+
+
+State 106
+
+   52 compare: GE .
+
+    $default  reduce using rule 52 (compare)
+
+
+State 107
+
+   49 compare: '<' .
+
+    $default  reduce using rule 49 (compare)
+
+
+State 108
+
+   50 compare: '>' .
+
+    $default  reduce using rule 50 (compare)
+
+
+State 109
+
+   46 rvalue: rvalue compare . logicalor
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    logicalor       go to state 133
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+
+
+State 110
+
+   54 logicalor: logicaland LOGICAL_OR . logicalor
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    logicalor       go to state 134
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+
+
+State 111
+
+   56 logicaland: pertinence LOGICAL_AND . logicaland
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    logicaland      go to state 135
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+
+
+State 112
+
+   58 pertinence: pertinence PERTINENCE . cartesian
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    cartesian       go to state 136
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+
+
+State 113
+
+   60 cartesian: cartesian CARTESIAN . addition
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    addition        go to state 137
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+
+
+State 114
+
+   62 addition: addition '+' . multiplication
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    multiplication  go to state 138
+    term            go to state 71
+    factor          go to state 72
+
+
+State 115
+
+   63 addition: addition '-' . multiplication
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    multiplication  go to state 139
+    term            go to state 71
+    factor          go to state 72
+
+
+State 116
+
+   65 multiplication: multiplication '*' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 140
+    factor  go to state 72
+
+
+State 117
+
+   66 multiplication: multiplication '/' . term
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 82
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    term    go to state 141
+    factor  go to state 72
+
+
+State 118
+
+   44 identlist: ID . ',' identlist
+   45          | ID .
+
+    ','  shift, and go to state 132
+
+    $default  reduce using rule 45 (identlist)
+
+
+State 119
+
+   85 funccall: ID '(' identlist . ')'
+
+    ')'  shift, and go to state 142
+
+
+State 120
+
+   43 attr: ID '=' expr .
+
+    $default  reduce using rule 43 (attr)
+
+
+State 121
+
+   27 whilestmt: K_WHILE '(' expr . ')' stmt
+
+    ')'  shift, and go to state 143
+
+
+State 122
+
+   29 ifstmt: K_IF '(' expr . ')' compoundstmt
+   30       | K_IF '(' expr . ')' compoundstmt elsepart
+
+    ')'  shift, and go to state 144
+
+
+State 123
+
+   35 io: K_PRINT '(' STR . ')'
+
+    ')'  shift, and go to state 145
+
+
+State 124
+
+   36 io: K_PRINT '(' ID . ')'
+
+    ')'  shift, and go to state 146
+
+
+State 125
+
+   37 io: K_READ '(' ID . ')'
+
+    ')'  shift, and go to state 147
+
+
+State 126
+
+   82 factorlist: factor .
+
+    $default  reduce using rule 82 (factorlist)
+
+
+State 127
+
+   68 term: '(' expr ')' .
+
+    $default  reduce using rule 68 (term)
+
+
+State 128
+
+   84 pair: factor ',' . factor
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+
+    factor  go to state 148
+
+
+State 129
+
+   74 term: '(' pair ')' .
+
+    $default  reduce using rule 74 (term)
+
+
+State 130
+
+   73 term: '{' factorlist '}' .
+
+    $default  reduce using rule 73 (term)
+
+
+State 131
+
+   81 factorlist: factorlist ',' . factor
+
+    ID           shift, and go to state 89
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+
+    factor  go to state 149
+
+
+State 132
+
+   44 identlist: ID ',' . identlist
+
+    ID  shift, and go to state 118
+
+    identlist  go to state 150
+
+
+State 133
+
+   46 rvalue: rvalue compare logicalor .
+
+    $default  reduce using rule 46 (rvalue)
+
+
+State 134
+
+   54 logicalor: logicaland LOGICAL_OR logicalor .
+
+    $default  reduce using rule 54 (logicalor)
+
+
+State 135
+
+   56 logicaland: pertinence LOGICAL_AND logicaland .
+
+    $default  reduce using rule 56 (logicaland)
+
+
+State 136
+
+   58 pertinence: pertinence PERTINENCE cartesian .
+   60 cartesian: cartesian . CARTESIAN addition
+
+    CARTESIAN  shift, and go to state 113
+
+    $default  reduce using rule 58 (pertinence)
+
+
+State 137
+
+   60 cartesian: cartesian CARTESIAN addition .
+   62 addition: addition . '+' multiplication
+   63         | addition . '-' multiplication
+
+    '+'  shift, and go to state 114
+    '-'  shift, and go to state 115
+
+    $default  reduce using rule 60 (cartesian)
+
+
+State 138
+
+   62 addition: addition '+' multiplication .
+   65 multiplication: multiplication . '*' term
+   66               | multiplication . '/' term
+
+    '*'  shift, and go to state 116
+    '/'  shift, and go to state 117
+
+    $default  reduce using rule 62 (addition)
+
+
+State 139
+
+   63 addition: addition '-' multiplication .
+   65 multiplication: multiplication . '*' term
+   66               | multiplication . '/' term
+
+    '*'  shift, and go to state 116
+    '/'  shift, and go to state 117
+
+    $default  reduce using rule 63 (addition)
+
+
+State 140
+
+   65 multiplication: multiplication '*' term .
+
+    $default  reduce using rule 65 (multiplication)
+
+
+State 141
+
+   66 multiplication: multiplication '/' term .
+
+    $default  reduce using rule 66 (multiplication)
+
+
+State 142
+
+   85 funccall: ID '(' identlist ')' .
+
+    $default  reduce using rule 85 (funccall)
+
+
+State 143
+
+   27 whilestmt: K_WHILE '(' expr ')' . stmt
+
+    error        shift, and go to state 36
+    ID           shift, and go to state 37
+    K_INT        shift, and go to state 2
+    K_FLOAT      shift, and go to state 3
+    K_CHAR       shift, and go to state 4
+    K_BOOL       shift, and go to state 5
+    K_SET        shift, and go to state 6
+    K_PAIR       shift, and go to state 7
+    K_WHILE      shift, and go to state 38
+    K_IF         shift, and go to state 39
+    K_PRINT      shift, and go to state 40
+    K_READ       shift, and go to state 41
+    K_RETURN     shift, and go to state 42
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 48
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    compoundstmt    go to state 53
+    type            go to state 54
+    stmt            go to state 151
+    whilestmt       go to state 57
+    ifstmt          go to state 58
+    declaration     go to state 59
+    io              go to state 60
+    returnstmt      go to state 61
+    expr            go to state 62
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 144
+
+   29 ifstmt: K_IF '(' expr ')' . compoundstmt
+   30       | K_IF '(' expr ')' . compoundstmt elsepart
+
+    '{'  shift, and go to state 33
+
+    compoundstmt  go to state 152
+
+
+State 145
+
+   35 io: K_PRINT '(' STR ')' .
+
+    $default  reduce using rule 35 (io)
+
+
+State 146
+
+   36 io: K_PRINT '(' ID ')' .
+
+    $default  reduce using rule 36 (io)
+
+
+State 147
+
+   37 io: K_READ '(' ID ')' .
+
+    $default  reduce using rule 37 (io)
+
+
+State 148
+
+   84 pair: factor ',' factor .
+
+    $default  reduce using rule 84 (pair)
+
+
+State 149
+
+   81 factorlist: factorlist ',' factor .
+
+    $default  reduce using rule 81 (factorlist)
+
+
+State 150
+
+   44 identlist: ID ',' identlist .
+
+    $default  reduce using rule 44 (identlist)
+
+
+State 151
+
+   27 whilestmt: K_WHILE '(' expr ')' stmt .
+
+    $default  reduce using rule 27 (whilestmt)
+
+
+State 152
+
+   29 ifstmt: K_IF '(' expr ')' compoundstmt .
+   30       | K_IF '(' expr ')' compoundstmt . elsepart
+
+    K_ELSE  shift, and go to state 153
+
+    $default  reduce using rule 29 (ifstmt)
+
+    elsepart  go to state 154
+
+
+State 153
+
+   31 elsepart: K_ELSE . stmt
+
+    error        shift, and go to state 36
+    ID           shift, and go to state 37
+    K_INT        shift, and go to state 2
+    K_FLOAT      shift, and go to state 3
+    K_CHAR       shift, and go to state 4
+    K_BOOL       shift, and go to state 5
+    K_SET        shift, and go to state 6
+    K_PAIR       shift, and go to state 7
+    K_WHILE      shift, and go to state 38
+    K_IF         shift, and go to state 39
+    K_PRINT      shift, and go to state 40
+    K_READ       shift, and go to state 41
+    K_RETURN     shift, and go to state 42
+    BOOL_VALUE   shift, and go to state 43
+    INT_VALUE    shift, and go to state 44
+    FLOAT_VALUE  shift, and go to state 45
+    CHAR_VALUE   shift, and go to state 46
+    '('          shift, and go to state 47
+    '{'          shift, and go to state 48
+    '+'          shift, and go to state 49
+    '-'          shift, and go to state 50
+    '$'          shift, and go to state 51
+    '!'          shift, and go to state 52
+
+    compoundstmt    go to state 53
+    type            go to state 54
+    stmt            go to state 155
+    whilestmt       go to state 57
+    ifstmt          go to state 58
+    declaration     go to state 59
+    io              go to state 60
+    returnstmt      go to state 61
+    expr            go to state 62
+    attr            go to state 63
+    rvalue          go to state 64
+    logicalor       go to state 65
+    logicaland      go to state 66
+    pertinence      go to state 67
+    cartesian       go to state 68
+    addition        go to state 69
+    multiplication  go to state 70
+    term            go to state 71
+    factor          go to state 72
+    funccall        go to state 73
+
+
+State 154
+
+   30 ifstmt: K_IF '(' expr ')' compoundstmt elsepart .
+
+    $default  reduce using rule 30 (ifstmt)
+
+
+State 155
+
+   31 elsepart: K_ELSE stmt .
+
+    $default  reduce using rule 31 (elsepart)
