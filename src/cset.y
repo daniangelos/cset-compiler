@@ -4,14 +4,25 @@
 #include "lex.yy.c" /*É necessário adicionar o arquivo do analisador lexico gerado */
 #include "src/tree.h"
 #include "src/table.h"
+#include "src/semantic.h"
+#include "src/tac.h"
 
 #define NEW(TYPE) memset(malloc(sizeof(TYPE)), 0, sizeof(TYPE))
 
+extern lines;
 void yyerror(const char *str)
-{    fprintf(stderr,"error: %s\n",str);}
+{    fprintf(stderr,"error: %s line: %d\n",str, lines);}
 int boolean_to_int(char* boolv);
 
 int synerrors = 0;
+int semerrors = 0;
+int label = 0;
+
+symb** table;
+int scope = 0;
+char c;
+functionsymb_t* f_temp;
+
 
 %}
 
@@ -86,6 +97,7 @@ int synerrors = 0;
 %type <outset_n> outset
 %type <function_n> function
 %type <arglist_n> arglist
+%type <arglist_n> arglistlist
 %type <compoundstmt_n> compoundstmt
 %type <type_n> type
 %type <arg_n> arg
@@ -118,11 +130,18 @@ int synerrors = 0;
 
 program			: outset
 		  		{
-					outset_t* node = NEW(outset_t);
-					node = $1;
-					if(!synerrors) {
-						printf("\n ***** Syntax Tree ****** \n\n");
-						printSyntaxTree(node, 0);
+					outset_t* root = NEW(outset_t);
+					root = $1;
+					checkForUndefinedSymbols(table);
+					if(!synerrors && !lexerrors && !semerrors) {
+						/*printf("\n ****** Syntax Tree ****** \n\n");*/
+						/*printSyntaxTree(root, 0);*/
+						/*typeCheck(root);*/
+						printf("\n\n ****** Symbol Table ****** \n\n");
+						printTable(table);
+						generateCode(table, root);
+						/*destructTree(root);*/
+						/*destructTable(table);*/
 					}
 				}
 					
@@ -134,49 +153,76 @@ outset		  	: outset function
 					node->function = $2;
 					$$ = node;
 				}
+				| declaration ';'
+				{
+					scope++;
+					outset_t* node = NEW(outset_t);
+					node->declaration = $1;
+					node->outset = NULL;
+					node->function = NULL;
+					$$ = node;
+					
+				}
 				| function
-		   		{ 	outset_t* node = NEW(outset_t);
+		   		{ 	
+					outset_t* node = NEW(outset_t);
 					node->function = $1;
 					node->outset = NULL;
+					node->declaration = NULL;
 					$$ = node;
 				}
 			  	;
 
 function	  	: type ID '(' arglist ')' compoundstmt
 				{
+					scope++;
 					function_t* node = NEW(function_t);
 					node->type = $1;
 					node->id = malloc(strlen($2) + 1);
 					strcpy(node->id, $2);
 					node->arglist = $4;
 					node->compoundstmt = $6;
+					node->code = malloc(strlen($2) + 3);
+					strcpy(node->code, $2);
+					strcat(node->code, ": ");	
+					printf("%s\n",node->code);
 					$$ = node;
+
+					f_temp = NEW(functionsymb_t);
+					f_temp->type_return = $1;
+					f_temp->args = $4;
+					if(addSymbol(table, $2, $1, scope, f_temp)) {
+						semerrors++;
+						printf("Erro semantico. Redeclaracao da funcao '%s'. Linha: %d\n", $2, lines);	
+					}
 				}
-				| error '}' { printf("Line: %d\t", lines); synerrors++; yyerrok; }
+				| error '}' { synerrors++; yyerrok; }
 			   	;
 
-arglist		  	: arg
+arglist		  	: arglistlist
 				{
-					arglist_t* node = NEW(arglist_t);
-					node->arglist = NULL;
-					node->arg = $1;
-					$$ = node;
+					$$ = $1;
 				}
-			   	| arglist ',' arg
+				| 
+				{
+					$$ = NULL;
+				}
+				;
+
+arglistlist	   	: arglist ',' arg
 				{
 					arglist_t* node = NEW(arglist_t);
 					node->arglist = $1;
 					node->arg = $3;
 					$$ = node;
 				}
-				|
+				| arg
 				{
 					arglist_t* node = NEW(arglist_t);
 					node->arglist = NULL;
-					node->arg = NULL;
+					node->arg = $1;
 					$$ = node;
 				}
-	
 			  	;
 
 arg			  	: type ID
@@ -184,9 +230,13 @@ arg			  	: type ID
 					arg_t* node = NEW(arg_t);
 					node->type = $1;
 					node->id = $2;
-					$$ = node;
+					$$ =  node;
+					if(addSymbol(table, $2, $1, scope + 1, NULL)) {
+						semerrors++;
+						printf("Erro semantico. Redeclaracao do identificador '%s'. Linha: %d\n", $2, lines);	
+					}
 				}
-				| error ' ' { printf("Line: %d\t", lines);  synerrors++; yyerrok; }
+				| error ' ' { synerrors++; yyerrok; }
 	  			;
 
 compoundstmt 	: '{' stmtlist '}'
@@ -320,9 +370,27 @@ whilestmt		: K_WHILE '(' expr ')' stmt
 					while_t* node = NEW(while_t);
 					node->expr = $3;
 					node->stmt = $5;
+					node->code = malloc(50);
+					label++;
+					char* str1 = malloc(strlen("label: if !expr goto whilenext\n") + 5);
+					sprintf(str1, "label%d: if !expr goto whilenext%d\n", label, label);
+					strcpy(node->code, str1);
+					strcat(node->code, "stmt code\n");
+					char* str2 = malloc(strlen("goto labelx"));
+					sprintf(str2,"goto label%d\n", label);
+					strcat(node->code, str2);
+					sprintf(str2, "whilenext%d:",label);
+					strcat(node->code, str2);
+					free(str1);
+					free(str2);
+					printf("%s\n", node->code);
 					$$ = node;
+					if(typeCheckCond(table, $3, scope)){
+						semerrors++;
+						printf("Erro semantivo linha %d. Condicao em while deve ter tipo bool.\n", lines);
+					}
 				}
-				| error '}' {  printf("Line: %d\t", lines); synerrors++; yyerrok; }
+				| error '}' { synerrors++; yyerrok; }
 		   		;
 
 ifstmt 			: K_IF '(' expr ')' compoundstmt
@@ -331,7 +399,23 @@ ifstmt 			: K_IF '(' expr ')' compoundstmt
 					node->expr = $3;
 					node->cstmt = $5;
 					node->else_node = NULL;
+					label++;
+					node->code = malloc(50);
+					char* str1 = malloc(strlen("if !expr goto ifnext\n") + 10);
+					sprintf(str1, "if !expr goto ifnext%d\n", label);
+					strcpy(node->code, str1);
+					strcat(node->code, "cmpstmt code\n");
+					char* str2 = malloc(strlen("goto labelx"));
+					sprintf(str2, "ifnext%d:",label);
+					strcat(node->code, str2);
+					free(str1);
+					free(str2);
+					printf("%s\n", node->code);
 					$$ = node;
+					if(typeCheckCond(table, $3, scope)){
+						semerrors++;
+						printf("Erro semantivo linha %d. Condicao em if deve ter tipo bool.\n", lines);
+					}
 				}
 		  		| K_IF '(' expr ')' compoundstmt elsepart
 				{
@@ -340,6 +424,10 @@ ifstmt 			: K_IF '(' expr ')' compoundstmt
 					node->cstmt = $5;
 					node->else_node = $6;
 					$$ = node;
+					if(typeCheckCond(table, $3, scope)){
+						semerrors++;
+						printf("Erro semantivo linha %d. Condicao em if deve ter tipo bool.\n", lines);
+					}
 				}
 		  		;
 
@@ -351,23 +439,31 @@ elsepart		: K_ELSE stmt
 				}
 				;
 
-declaration		: type identlist
-			 	{
-					declaration_t* node = NEW(declaration_t);
-					int activated = 0;
-					node->type = $1;
-					node->decl.identlist = $2;
-					$$ = node;
-				}	
-			 	| type attr
+declaration		: type attr
 			 	{
 					declaration_t* node = NEW(declaration_t);
 					int activated = 1;
 					node->type = $1;
 					node->decl.attr = $2;
 					$$ = node;
+					if(addSymbol(table, node->decl.attr->id, $1, scope + 1, NULL)){
+						semerrors++;
+						printf("Erro semantico. Redeclaracao do identificador '%s'. Linha: %d\n", node->decl.attr->id, lines);	
+					}
+				}
+			 	| type identlist
+			 	{
+					declaration_t* node = NEW(declaration_t);
+					int activated = 0;
+					node->type = $1;
+					node->decl.identlist = $2;
+					if(addSymbol(table, node->decl.identlist->id, $1, scope + 1, NULL)){
+						semerrors++;
+						printf("Erro semantico. Redeclaracao do identificador '%s'. Linha: %d\n", node->decl.identlist->id, lines);	
+					}
+					$$ = node;
 				}	
-				| error ';' { printf("Line: %d\t", lines);  synerrors++; yyerrok; }
+				| error ';' { synerrors++; yyerrok; }
 				;
 
 io				: K_PRINT '(' STR ')'
@@ -387,6 +483,7 @@ io				: K_PRINT '(' STR ')'
 					node->content = malloc(strlen($3)+1);
 					strcpy(node->content, $3);
 					$$ = node;
+					addSymbol(table, $3, NULL, scope + 1, NULL);	
 				}
 				| K_READ '(' ID ')'
 	  			{
@@ -396,6 +493,7 @@ io				: K_PRINT '(' STR ')'
 					node->content = malloc(strlen($3)+1);
 					strcpy(node->content, $3);
 					$$ = node;
+					addSymbol(table, $3, NULL, scope + 1, NULL);	
 				}
 				;
 
@@ -405,12 +503,12 @@ returnstmt		: K_RETURN expr
 					node->expr = $2;
 					$$ = node;
 				}
-				| K_RETURN
-				{
-					return_t* node = NEW(return_t);
-					node->expr = NULL;
-					$$ = node;
-				}
+				/*| K_RETURN*/
+				/*{*/
+					/*return_t* node = NEW(return_t);*/
+					/*node->expr = NULL;*/
+					/*$$ = node;*/
+				/*}*/
 				;
 
 expr 			: attr
@@ -418,6 +516,8 @@ expr 			: attr
 					expr_t* node = NEW(expr_t);
 					node->activated = 0;
 					node->expr.attr = $1;
+					node->type = NULL;
+					/*node->code = $1->code;*/
 					$$ = node;
 				}
 				| rvalue
@@ -425,6 +525,8 @@ expr 			: attr
 					expr_t* node = NEW(expr_t);
 					node->activated = 1;
 					node->expr.operation = $1;
+					node->type = NULL;
+					/*node->code = malloc(strlen($1->code)+1);*/
 					$$ = node;
 				}
 				| funccall
@@ -432,6 +534,8 @@ expr 			: attr
 					expr_t* node = NEW(expr_t);
 					node->activated = 2;
 					node->expr.funccall = $1;
+					node->type = NULL;
+					node->code = $1->code;
 					$$ = node;
 				}
 				;
@@ -442,17 +546,35 @@ attr 			: ID '=' expr
 					node->id = malloc(strlen($1));
 					strcpy(node->id, $1);
 					node->expr = $3;
+					/*node->code = malloc(strlen($3->code)+strlen($1)+6);*/
 					$$ = node;
+					addSymbol(table, $1, NULL, scope + 1, NULL);	
+					switch(typeCheckAttr(table, $1, $3, scope + 1)){
+					case 1:
+						semerrors++;
+						printf("Erro semantico linha %d. Tipos incompativeis na atribuicao.\n",lines);
+						break;
+					case 2:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado esquerdo da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					case 3:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado direito da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					}
+	
 				}
 				;
 
-identlist 		: ID ',' identlist
+identlist 		: identlist ',' ID
 				{
 					identlist_t* node = NEW(identlist_t);
-					node->id = malloc(strlen($1));
-					strcpy(node->id, $1);
-					node->identlist = $3;
+					node->id = malloc(strlen($3));
+					strcpy(node->id, $3);
+					node->identlist = $1;
 					$$ = node;
+					addSymbol(table, $3, NULL, scope + 1, NULL);	
 				}
 				| ID
 				{
@@ -461,6 +583,11 @@ identlist 		: ID ',' identlist
 					strcpy(node->id, $1);
 					node->identlist = NULL;
 					$$ = node;
+					addSymbol(table, $1, NULL, scope + 1, NULL);	
+				}
+				|
+				{
+					$$ = NULL;
 				}
 				;
 
@@ -706,6 +833,7 @@ factor 			: ID
 					node->fac.id = malloc(strlen($1) + 1);
 					strcpy(node->fac.id, $1);
 					$$ = node;
+					addSymbol(table, $1, NULL, scope + 1, NULL);	
 				}
 		  		| BOOL_VALUE
 		  		{
@@ -775,7 +903,41 @@ funccall 		: ID '(' identlist ')'
 					node->id = malloc(strlen($1) + 1);
 					strcpy(node->id, $1);
 					node->identlist = $3;
+					int numparam;
+					if($3 == NULL) {
+						node->code = malloc(strlen($1) + 10);
+						numparam = 0;
+					}
+					else {
+						char* aux = stackId($3, &numparam);
+						node->code = malloc(strlen(aux) + strlen($1) + 10);
+						strcpy(node->code, aux);
+						free(aux);
+					}
+					strcat(node->code, "call ");
+					strcat(node->code, $1);
+					strcat(node->code, ", ");
+					char str[3];
+					sprintf(str, "%d", numparam);
+					strcat(node->code, str);
+					/*printf("%s\n", node->code);*/
 					$$ = node;
+					switch(findFuncDecl(table, $1, $3, scope+1)) {
+					case 1:
+						printf("Erro semantico, linha %d. Chamada a funcao nao definida!\n", lines);							
+						semerrors++;
+						break;
+					case 2:
+						printf("Erro semantico, linha %d. Numero de argumentos invalido!\n", lines);							
+						semerrors++;
+						break;
+					case 3:
+						printf("Erro semantico, linha %d. Tipo de argumento nao esperado.\n", lines);
+						semerrors++;
+						break;
+					}
+						
+
 				}
 		   		;
 
@@ -784,6 +946,10 @@ funccall 		: ID '(' identlist ')'
 
 int main(int argc, char** argv)
 {
+	if(argc > 1) {
+        yyin = fopen(argv[1], "r");
+    }
+	table = malloc(sizeof(symb));
 	yyparse();
 
 	return 0;

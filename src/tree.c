@@ -56,7 +56,7 @@ void printType ( type_t* type, int i ) {
 			printNode("Type not recognized", i+1);
 	}
 
-	free(type);
+	/*free(type);*/
 
 
 	return;
@@ -108,6 +108,7 @@ void printArg ( arg_t* arg, int i) {
 		printNode("id", i+1);
 		printNode(arg->id, i+2);
 	}
+	else printf("nao\n");
 
 	free(arg);
 
@@ -305,12 +306,13 @@ void printIdentlist (identlist_t* ident, int i) {
 
 void printOperation ( operation_t* op , int i ) {
 
+	printNode("operation", i);
 	switch(op->activated) {
 		case 0:
 			printOpbin(op->kind.opbin, i);
 			break;
 		case 1:
-			printOperation (op->kind.operation, i);
+			printOperation (op->kind.operation, i+1);
 			break;
 		case 2:
 			printTerm (op->kind.term, i+1);

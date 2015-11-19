@@ -81,7 +81,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 50 "src/cset.y" /* yacc.c:1909  */
+#line 61 "src/cset.y" /* yacc.c:1909  */
 
 	char* boolv;
 	int intv;

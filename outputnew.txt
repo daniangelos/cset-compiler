@@ -1,0 +1,201 @@
+
+ ****** Syntax Tree ****** 
+
+outset
+|	outset
+|	|	outset
+|	|	|	function
+|	|	|	|	type
+|	|	|	|	|	char
+|	|	|	|	id
+|	|	|	|	|	pani
+|	|	|	|	(
+|	|	|	|	arglist
+|	|	|	|	|	arglist
+|	|	|	|	|	|	arg
+|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	bool
+|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	i
+|	|	|	|	|	,
+|	|	|	|	|	arg
+|	|	|	|	|	|	type
+|	|	|	|	|	|	|	int
+|	|	|	|	|	|	id
+|	|	|	|	|	|	|	a
+|	|	|	|	)
+|	|	|	|	compoundstmt
+|	|	|	|	|	{
+|	|	|	|	|	stmtlist
+|	|	|	|	|	|	stmtlist
+|	|	|	|	|	|	|	stmtlist
+|	|	|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	|	|	Declaration
+|	|	|	|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	|	|	|	int
+|	|	|	|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	|	b
+|	|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	|	attr
+|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	|	a
+|	|	|	|	|	|	|	|	|	|	=
+|	|	|	|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	|	|	|	rvalue
+|	|	|	|	|	|	|	|	|	|	|	|	|	term
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	factor
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	a
+|	|	|	|	|	|	|	|	|	|	|	|	MULT
+|	|	|	|	|	|	|	|	|	|	|	|	term
+|	|	|	|	|	|	|	|	|	|	|	|	|	factor
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	intvalue
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	|	2
+|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	return
+|	|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	|	|	term
+|	|	|	|	|	|	|	|	|	|	|	factor
+|	|	|	|	|	|	|	|	|	|	|	|	charvalue
+|	|	|	|	|	|	|	|	|	|	|	|	|	s
+|	|	|	|	|	}
+|	|	function
+|	|	|	type
+|	|	|	|	set
+|	|	|	|	<<
+|	|	|	|	type
+|	|	|	|	|	int
+|	|	|	|	>>
+|	|	|	id
+|	|	|	|	bah
+|	|	|	(
+|	|	|	arglist
+|	|	|	|	arg
+|	|	|	|	|	type
+|	|	|	|	|	|	int
+|	|	|	|	|	id
+|	|	|	|	|	|	l
+|	|	|	)
+|	|	|	compoundstmt
+|	|	|	|	{
+|	|	|	|	stmtlist
+|	|	|	|	|	stmtlist
+|	|	|	|	|	|	stmtlist
+|	|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	|	Declaration
+|	|	|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	|	|	set
+|	|	|	|	|	|	|	|	|	|	<<
+|	|	|	|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	|	|	|	int
+|	|	|	|	|	|	|	|	|	|	>>
+|	|	|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	b
+|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	attr
+|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	b
+|	|	|	|	|	|	|	|	|	=
+|	|	|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	|	|	|	term
+|	|	|	|	|	|	|	|	|	|	|	|	factor
+|	|	|	|	|	|	|	|	|	|	|	|	|	intvalue
+|	|	|	|	|	|	|	|	|	|	|	|	|	|	10
+|	|	|	|	|	stmt
+|	|	|	|	|	|	return
+|	|	|	|	|	|	|	expr
+|	|	|	|	|	|	|	|	|	term
+|	|	|	|	|	|	|	|	|	|	factor
+|	|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	|	|	b
+|	|	|	|	}
+|	function
+|	|	type
+|	|	|	pair
+|	|	|	<<
+|	|	|	type
+|	|	|	|	int
+|	|	|	,
+|	|	|	type
+|	|	|	|	bool
+|	|	|	>>
+|	|	id
+|	|	|	dah
+|	|	(
+|	|	arglist
+|	|	|	arglist
+|	|	|	|	arg
+|	|	|	|	|	type
+|	|	|	|	|	|	float
+|	|	|	|	|	id
+|	|	|	|	|	|	jjfl
+|	|	|	,
+|	|	|	arg
+|	|	|	|	type
+|	|	|	|	|	char
+|	|	|	|	id
+|	|	|	|	|	c
+|	|	)
+|	|	compoundstmt
+|	|	|	{
+|	|	|	stmtlist
+|	|	|	|	stmtlist
+|	|	|	|	|	stmtlist
+|	|	|	|	|	|	stmtlist
+|	|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	|	Declaration
+|	|	|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	|	|	bool
+|	|	|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	|	b
+|	|	|	|	|	|	stmt
+|	|	|	|	|	|	|	Declaration
+|	|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	|	int
+|	|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	i
+|	|	|	|	|	stmt
+|	|	|	|	|	|	Declaration
+|	|	|	|	|	|	|	type
+|	|	|	|	|	|	|	|	int
+|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	a
+|	|	|	|	stmt
+|	|	|	|	|	expr
+|	|	|	|	|	|	funccall
+|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	pani
+|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	a
+|	|	|	|	|	|	|	|	,
+|	|	|	|	|	|	|	|	identlist
+|	|	|	|	|	|	|	|	|	id
+|	|	|	|	|	|	|	|	|	b
+|	|	|	}
+
+
+ ****** Symbol Table ****** 
+
+[ 	 ID 	 | 	TYPE 	 |	SCOPE 	] 
+|	i	 | 	 bool	 | 	 1  	|
+|	a	 | 	 int	 | 	 1  	|
+|	b	 | 	 int	 | 	 1  	|
+|	pani	 | 	 char	 | 	 1  	|
+|	l	 | 	 int	 | 	 2  	|
+|	b	 | 	 set	 | 	 2  	|
+|	bah	 | 	 set	 | 	 2  	|
+|	jjfl	 | 	 float	 | 	 3  	|
+|	c	 | 	 char	 | 	 3  	|
+|	b	 | 	 bool	 | 	 3  	|
+|	i	 | 	 int	 | 	 3  	|
+|	a	 | 	 int	 | 	 3  	|
+|	dah	 | 	 pair	 | 	 3  	|
+

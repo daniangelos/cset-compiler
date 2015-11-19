@@ -8,7 +8,7 @@
 #define MAX_TOKENS 2048
 
 int lines = 1, columns = 1;
-int errors = 0;
+int lexerrors = 0;
 
 %}
 
@@ -75,7 +75,7 @@ READ		"read"
 
 
 (_|{L})(_|{D}|{L})*	{yylval.str = strdup(yytext); return ID;}
-{D}+(_|{L}|{D})*	{return -1;}
+{D}+(_|{L}|{D})*	{lexerrors++; printf("Lexical error at line %d. Incorrect ID formation.\n", lines) ; BEGIN(INITIAL);}
 
 "<<"			{return DOUBLE_BR_OP;}
 ">>"			{return DOUBLE_BR_CL;}
@@ -109,7 +109,7 @@ READ		"read"
 {WS}+			{columns+=yyleng; BEGIN(INITIAL);} 
 {EOL}			{columns = 1; lines++; BEGIN(INITIAL);}
 
-.				{return -1;}
+.				{lexerrors++; printf("Lexical error at line %d. Unrecognized token.\n", lines) ; BEGIN(INITIAL);}
 
 %%
 
@@ -122,91 +122,4 @@ typedef struct tokens_t
 
 void print_tokens(int total_t, tokens_t *alltokens);
 int yywrap() { return 1; }
-
-/*int main(int argc, char* argv[])*/
-/*{*/
-	/*int token;*/
-	/*int tot_erros = 0;*/
-	/*int total_t = 0;*/
-	/*tokens_t *alltokens;*/
-	/*int file_mode = 0;*/
-	/*FILE *log;*/
-	
-	/*int i;*/
-
-	/*if(argc < 2) { printf("Arquivo de entrada nao informado.\n"); return -1;}*/
-	/*else if(argc > 2)*/
-	/*{*/
-		/*if(strcmp(argv[2], "-f")) { printf("Argumento invalido!\n"); return -1;}*/
-		/*file_mode = 1;*/
-	/*}*/
-
-	/*yyin = fopen(argv[1], "r");*/
-	/*if(file_mode) log = fopen(strcat(argv[1],".log"), "w");*/
-
-	/*alltokens = malloc(sizeof(tokens_t)*MAX_TOKENS);*/
-
-	/*while(token = yylex())*/
-	/*{*/
-		/*if(token > 0)*/
-		/*{*/
-			/*alltokens[total_t].line = lines;*/
-			/*alltokens[total_t].token_id = token;*/
-			/*alltokens[total_t].token_name = malloc(yyleng + 1);*/
-			/*strcpy(alltokens[total_t].token_name, yytext);*/
-			/*total_t++;*/
-		/*}*/
-		/*else */
-		/*{*/
-		/*if (tot_erros == 0) */
-			/*if(file_mode) fprintf(log,"\n* -------- Erro(s) encontrado(s) --------- *\n\n");*/
-			/*else printf("\n* -------- Erro(s) encontrado(s) --------- *\n\n");*/
-		/*if(file_mode) */
-			/*fprintf(log, "Erro linha:coluna %d:%d. Sequencia (%s) nao reconhecida\n", lines, columns, yytext);*/
-		/*else */
-			/*printf("Erro linha:coluna %d:%d. Sequencia (%s) nao reconhecida\n", lines, columns, yytext);*/
-		/*tot_erros++;*/
-		/*}*/
-		/*columns += yyleng;*/
-	/*}*/
-
-	/*print_tokens(total_t, alltokens);*/
-
-	/*free(alltokens);*/
-
-	/*return 0;*/
-/*}*/
-
-/*void print_tokens(int total_t, tokens_t *alltokens)*/
-/*{*/
-	/*static char const* tokens[] =*/
-		/*{ 0, "INT_C", "FLOAT_C", "CHAR_C", "BOOL_C", "KEYWORD_INT", "KEYWORD_FLOAT",*/
-		/*"KEYWORD_CHAR", "KEYWORD_BOOL", "KEYWORD_SET", "KEYWORD_PAIR", "KEYWORD_WHILE",*/
-		/*"KEYWORD_IF", "KEYWORD_ELSE", "KEYWORD_RETURN", "EQUAL", "COMPARE",*/
-		/*"DIFFERENCE", "LT", "LE", "GT", "GE", "LOGICAL_OR", "LOGICAL_AND", "PERTINENCE",*/
-		/*"CARTESIAN", "ADD", "SUB", "MULT", "DIV", "CARD", "NOT", "COMMA", "DOUBLE_BR_OP",*/
-		/*"DOUBLE_BR_CL", "OPEN_P", "CLOSE_P", "OPEN_SQR_BRACKET", "CLOSE_SQR_BRACKET",*/
-		/*"OPEN_BRACKET", "CLOSE_BRACKET", "SEMI_COLON", "ID", "KEYWORD_PRINT",*/
-		/*"KEYWORD_READ", "STRING_C"};*/
-
-	/*int i;*/
-
-	/*printf("\n");*/
-	/*printf("* ----------- Token(s) lido(s) ----------- *\n\n");*/
-
-	/*for(i = 0; i<total_t; i++)*/
-	/*{*/
-		/*printf("Linha: %d \tToken: %-15.15s \t\tConteudo: ", alltokens[i].line, tokens[alltokens[i].token_id]);*/
-		/*printf("%s", alltokens[i].token_name);*/
-		/*printf("\n");*/
-		/*free(alltokens[i].token_name);*/
-	/*}*/
-
-	/*printf("\n");*/
-
-/*}*/
-
-
-
-
 

@@ -40,6 +40,7 @@ typedef struct opbin_t opbin_t;
 struct outset_t {
 	outset_t* outset;
 	function_t* function;
+	declaration_t* declaration;
 };
 
 struct function_t {
@@ -47,6 +48,7 @@ struct function_t {
 	char* id;
 	arglist_t* arglist;
 	compoundstmt_t* compoundstmt;
+	char* code;
 };
 
 struct arglist_t {
@@ -97,6 +99,7 @@ struct while_t {
 	expr_t* expr;
 	//)
 	stmt_t* stmt;
+	char* code;
 };
 
 struct if_t {  
@@ -106,6 +109,7 @@ struct if_t {
 	//)
 	compoundstmt_t* cstmt;
 	else_t* else_node;
+	char* code;
 };
 
 struct else_t {
@@ -141,12 +145,15 @@ struct expr_t {
 		operation_t* operation;
 		funccall_t* funccall;
 	}expr;
+	type_t* type;
+	char* code;
 };
 
 struct attr_t {
 	char* id;
 	// =
 	expr_t* expr;
+	char* code;
 };
 
 struct identlist_t {
@@ -161,6 +168,7 @@ struct operation_t {
 		operation_t* operation;
 		term_t* term;
 	}kind;
+	char* code;
 };
 
 struct opbin_t {
@@ -228,6 +236,7 @@ struct funccall_t {
 	//(
 	identlist_t* identlist;
 	//)
+	char* code;
 };
 
 void printSyntaxTree ( outset_t* node , int i );

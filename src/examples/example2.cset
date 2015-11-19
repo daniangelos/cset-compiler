@@ -1,12 +1,17 @@
 int main() {
 	
 	int a;
+	float c;
 	a = 2;
 	set<<int>> oi ;
 	oi = {1, 2, 3};
 	bool pert ;
 	pert = 2 <?> nat; 
 	print(pert);
+
+	while(pert) {
+		print("oi");
+	}
 
 	return 0;
 }
