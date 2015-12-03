@@ -111,6 +111,7 @@ functionsymb_t* f_temp;
 %type <return_n> returnstmt
 %type <expr_n> expr
 %type <attr_n> attr
+%type <identlist_n> identlistlist
 %type <identlist_n> identlist
 %type <operation_n> rvalue
 %type <operation_n> logicalor
@@ -137,8 +138,8 @@ program			: outset
 						/*printf("\n ****** Syntax Tree ****** \n\n");*/
 						/*printSyntaxTree(root, 0);*/
 						/*typeCheck(root);*/
-						printf("\n\n ****** Symbol Table ****** \n\n");
-						printTable(table);
+						/*printf("\n\n ****** Symbol Table ****** \n\n");*/
+						/*printTable(table);*/
 						generateCode(table, root);
 						/*destructTree(root);*/
 						/*destructTable(table);*/
@@ -183,9 +184,10 @@ function	  	: type ID '(' arglist ')' compoundstmt
 					node->arglist = $4;
 					node->compoundstmt = $6;
 					node->code = malloc(strlen($2) + 3);
-					strcpy(node->code, $2);
+					strcpy(node->code, "\n");
+					strcat(node->code, $2);
 					strcat(node->code, ": ");	
-					printf("%s\n",node->code);
+					/*printf("%s\n",node->code);*/
 					$$ = node;
 
 					f_temp = NEW(functionsymb_t);
@@ -381,9 +383,9 @@ whilestmt		: K_WHILE '(' expr ')' stmt
 					strcat(node->code, str2);
 					sprintf(str2, "whilenext%d:",label);
 					strcat(node->code, str2);
-					free(str1);
-					free(str2);
-					printf("%s\n", node->code);
+					/*free(str1);*/
+					/*free(str2);*/
+					/*printf("%s\n", node->code);*/
 					$$ = node;
 					if(typeCheckCond(table, $3, scope)){
 						semerrors++;
@@ -408,9 +410,9 @@ ifstmt 			: K_IF '(' expr ')' compoundstmt
 					char* str2 = malloc(strlen("goto labelx"));
 					sprintf(str2, "ifnext%d:",label);
 					strcat(node->code, str2);
-					free(str1);
-					free(str2);
-					printf("%s\n", node->code);
+					/*free(str1);*/
+					/*free(str2);*/
+					/*printf("%s\n", node->code);*/
 					$$ = node;
 					if(typeCheckCond(table, $3, scope)){
 						semerrors++;
@@ -567,7 +569,14 @@ attr 			: ID '=' expr
 				}
 				;
 
-identlist 		: identlist ',' ID
+identlist 		: identlistlist
+				|
+				{
+					$$ = NULL;
+				}
+				;
+
+identlistlist:	identlist ',' ID
 				{
 					identlist_t* node = NEW(identlist_t);
 					node->id = malloc(strlen($3));
@@ -585,11 +594,6 @@ identlist 		: identlist ',' ID
 					$$ = node;
 					addSymbol(table, $1, NULL, scope + 1, NULL);	
 				}
-				|
-				{
-					$$ = NULL;
-				}
-				;
 
 rvalue			: rvalue compare logicalor
 		 		{
@@ -912,7 +916,7 @@ funccall 		: ID '(' identlist ')'
 						char* aux = stackId($3, &numparam);
 						node->code = malloc(strlen(aux) + strlen($1) + 10);
 						strcpy(node->code, aux);
-						free(aux);
+						/*free(aux);*/
 					}
 					strcat(node->code, "call ");
 					strcat(node->code, $1);

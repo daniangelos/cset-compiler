@@ -1,0 +1,15 @@
+set<<int>> nat (int a) {
+	int i;
+	i = 0;
+	set<<int>> n;
+	set<<int>> m;
+	if(a>i) {return n;}
+	return m;
+}
+
+int main() {
+	int n;
+	read(n);
+	nat(n);
+	return 0;
+}

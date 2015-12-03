@@ -1,0 +1,20 @@
+int foo(int b, bool c) {
+	int i;
+	i = 0;
+	b = true;
+	while(b + 10) {
+		i = i + 1;
+		b = b - 1;
+	}
+	return i;
+}
+
+int main() {
+	int a;
+	bool c;
+	read(a);
+	read(c);
+	a = foo(c, a);
+	return 0;
+}
+		

@@ -1,0 +1,333 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt]{article}
+\usepackage{float}
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[brazil]{babel}   
+\usepackage[utf8]{inputenc}  
+\usepackage{indentfirst}
+\usepackage{caption3}
+\usepackage{color}
+\usepackage{alltt}
+\usepackage{listings}
+
+\lstset{ %
+language=C,                % choose the language of the code
+basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it is 1 each line will be numbered
+numbersep=7pt,                  % how far the line-numbers are from the code
+backgroundcolor=\color{white},  % choose the background color. You must add \usepackage{color}
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,           % adds a frame around the code
+tabsize=2,          % sets default tabsize to 2 spaces
+breaklines=true,        % sets automatic line breaking
+breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
+escapeinside={\%*}{*)},          % if you want to add a comment within your code
+extendedchars=true,
+emph={%  
+    set, pair, bool%
+    },emphstyle={\bfseries},
+morekeywords={set, pair}
+literate={á}{{\'a}}1 {ã}{{\~a}}1 {é}{{\'e}}1
+}
+     
+\sloppy
+
+\title{CSet - Analisador semântico}
+
+\author{Daniella Angelos $^1$}
+
+\address{Departamento de Ciência da Computação - Universidade de Brasília}
+
+\begin{document} 
+
+\maketitle
+% %------------------------------------------------
+% \begin{abstract}
+%  This paper presents the problem of Multiple Sequence Alignment and how the A * algorithm obtains the optimal result of this problem. We also show some high-performance platforms that can be applied to this problem in order to improve the performance of the implementation and finally some results obtained.
+% \end{abstract}
+
+%------------------------------------------------
+\section{Objetivo}
+Este trabalho visa apresentar o analisador semântico desenvolvido para a linguagem CSet proposta anteriormente.
+
+%------------------------------------------------
+\section{Introdução}
+
+Um compilador pode ser dividido em duas partes principais: análise e síntese. A parte de análise quebra o programa fonte em pedaços com significado e aplica uma estrutura gramatical a eles, informando possíveis erros que foram encontrados. Esta parte também é responsável por coletar informações sobre o programa fonte e armazená-las em uma estrutura de dados chamada \textit{tabela de símbolos}, que é passada ao longo das fases intermediárias da análise até a parte de síntese.
+
+A análise semântica é a última fase da etapa de análise, utiliza a árvore sintática e a tabela de símbolos para checar a consistência semântica do código fonte, de acordo com a definição da linguagem.
+
+\section{Gramática}
+
+A gramática da linguagem apresentada anteriormente sofreu algumas alterações que estão destacadas a seguir.
+
+\vspace{2mm}
+\begin{alltt}
+Outset          -> Function
+                  \textbf{| Declaration}
+                  | Outset Function
+                  
+Function       -> Type identifier ( ArgList ) CompoundStmt
+                  
+\textbf{ArgList        -> Arglistlist
+                  | \(\varepsilon\)     
+
+Arglistlist     -> Arg
+                  | ArgList , Arg}
+                  
+Arg            -> Type identifier
+                  
+Declaration    -> Type IdentList
+                  | Type Attr
+                  
+Type           -> int
+                  | float
+                  | char
+                  | bool
+                  | set << Type >>
+                  | pair << Type , Type >>
+
+\textbf{Identlist      -> Identlistlist
+                  | \(\varepsilon\)
+                  
+IdentListlist  -> identifier , IdentList
+                  | identifier}
+                  
+Stmt           -> WhileStmt
+                  | Expr ;
+                  | IfStmt
+                  | CompoundStmt
+                  | Declaration ;
+                  | IO ; 
+                  | ReturnStmt ;
+                  
+WhileStmt      -> while ( Expr ) Stmt
+                  
+IfStmt         -> if ( Expr ) CompoundStmt
+                  | if ( Expr ) CompoundStmt ElsePart
+                  
+ElsePart       -> else Stmt
+                  
+IO             -> print ( str )
+                  | print ( identifier )
+                  | read ( identifier )
+   
+ReturnStmt     -> return Expr
+                  | return
+                  
+CompoundStmt   -> \{ StmtList \}
+                  
+StmtList       -> StmtList Stmt
+                  | \(\varepsilon\)
+                  
+Expr           -> Attr
+                  | Rvalue
+                  | FuncCall
+                  
+Attr           -> identifier = Expr
+                  
+Rvalue         -> Rvalue Compare LogicalOr
+                  | LogicalOr
+                               
+Compare        -> ==
+                  | <
+                  | >
+                  | <=
+                  | >=
+                  | !=
+                  
+LogicalOr      -> LogicalAnd || LogicalOr
+                  | LogicalAnd
+                  
+LogicalAnd     -> Pertinence && LogicalAnd
+                  | Pertinence
+                  
+Pertinence     -> Pertinence <?> Cartesian
+                  | Cartesian
+                  
+Cartesian      -> Cartesian <*> Addition
+                  | Addition
+                  
+Addition       -> Addition + Multiplication
+                  | Addition - Multiplication
+                  | Multiplication
+                  
+Multiplication -> Multiplication * Factor
+                  | Multiplication / Factor
+                  | Term
+                  
+Term           -> ( Expr )
+                  | - Term
+                  | + Term
+                  | $ Term
+                  | ! Term
+                  | \{ FactorList \}
+                  | ( Pair )
+                  | Factor
+                  
+Factor         -> identifier
+                  | boolean
+                  | number
+                  | character
+                  
+FactorList     -> FactorList , Factor
+                  | Factor
+                  | \(\varepsilon\)
+                  
+Pair           -> Factor , Factor
+
+FuncCall       -> identifier ( IdentList )
+
+\end{alltt}
+
+\vspace{2mm}
+
+A inserção da regra \texttt{Outset -> Declaration} teve como objetivo permitir a declaração de variáveis globais.
+
+Uma pequena alteração nas regras de lista de argumentos e \textit{ids} também foi realizado, pois a versão antiga permitia que ambas possuísse um número arbitrário de vírgulas sem que houvesse elementos entre elas.
+
+\section{Léxico}
+
+Erros léxicos correspondem a caracteres inválidos, em CSet são, por exemplo 'ç', '@' etc, e nomes de identificadores começados por números. Para capturar este erro de identificadores, a seguinte regra foi criada.
+
+\begin{verbatim}
+{D}+(_|{L}|{D})*	{return -2;}
+\end{verbatim}
+
+Se um token não casar com nenhuma regra, será capturado pela regra a seguir.
+
+\begin{verbatim}
+.				{return -1;}
+\end{verbatim}
+
+O retorno de um número negativo ao token corresponde a um erro. Este será, então, mostrado ao usuário com informações de linha, coluna, conteúdo e tipo de erro. Neste caso, a função \texttt{tratar\_erros} é chamada, ela é responsável por gerar a mensagem correspondente.
+
+% \vspace{1mm}
+% \begin{lstlisting}
+% set<int> nat = {1, 2, 3};
+% pair<int, bool> bah = (2, false);
+% bool pert = bah <?> nat <*> {true, false};
+% \end{lstlisting}
+
+\section{Sintático}
+
+Erros sintáticos estão relacionados à estrutura incorreta do programa. Trata-se de tokens que foram validados pelo analisador léxico mas aparecem em um local não esperado. Por exemplo, lexicamente, podemos escrever
+
+\texttt{int int;}
+
+Mas não sintaticamente, pois \texttt{int} corresponde a uma palavra reservada de tipo primitivo da linguagem, e depois de sua ocorrência é esperado um token de identificador, ou seja, esta linha não irá corresponder a nenhuma regra da gramática da linguagem, ocasionando um erro sintático.
+
+Para que o analisador sintático possa identificar o maior número de erros possíveis, uma regra adicional foi acrescentada a algumas variáveis para que pudessem lidar com erros. Por exemplo:
+ 	
+\begin{verbatim}
+| error '}' { synerrors++; yyerrok; } 
+\end{verbatim}
+
+Faz parte da variável \texttt{function} e toda vez que um erro é encontrado, o mesmo é reportado e o analisador ignora qualquer token que for enviado pelo léxico até encontrar \texttt{'\}'}.
+
+% \vspace{1mm}
+% \begin{lstlisting}
+% set<int> nat = {1, 2, 3};
+% pair<int, bool> bah = (2, false);
+% bool pert = bah <?> nat <*> {true, false};
+% \end{lstlisting}
+
+\subsection{Árvore sintática}
+
+Para cada uma das variáveis da gramática (com uma ou outra exceção, que puderam utilizar uma definição mais genérica) foi criada uma estrutura que define o tipo do nó que é gerado após a regra ser atingida.
+
+Cada uma dessas estruturas possuem campos referentes à variável e correspondem, em sua maioria, a outros nós na árvore.
+
+\subsection{Tabela de símbolos}
+
+Para armazenar informações sobre identificadores de variáveis e funções, uma tabela de símbolos é criada e que será de extrema utilidade ao analisador semântico.
+
+Ao encontrar um identificador, o sintático verifica se a entrada já existe na tabela, caso não exista, a mesma é criada.
+
+\section{Semântico}
+
+Com o auxílio da tabela de símbolos e da árvore sintática, o analisador semãntico encontra inconsistências no arquivo fonte que dizem respeito, principalmente, à tipagem das expressões e à declaração de variáveis.
+
+Os erros que este analisador captura estão listados a seguir:
+\begin{itemize}
+\item Inconsistência de tipos em uma atribuição de variável
+\item Variáveis usadas, mas não declaradas
+\item Chamada a uma função não declarada
+\item Chamada a uma função com o número inválido de argumentos
+\item Passagem de argumentos a uma função com tipos que divergem dos parâmetros da mesma
+\item Condição em expressões \texttt{if} e \texttt{while} com tipo diferente de \texttt{bool}
+\end{itemize}
+
+Para as verificações de tipo, foi implementado uma checagem de tipo que analisa a tipagem de cada um dos termos que compõem a expressão.
+
+\section{Geração de código}
+
+A geração de código intermediária foi iniciada, apesar de não finalizada. Está sendo utilizado o formato TAC.
+
+Chamadas a função geram o código e um esqueleto é produzido para expressões \texttt{if} e \texttt{while}. Também já cria-se os rótulos para procedimentos.
+
+O código que está sendo gerado é salvo no arquivo cset.tac ao final da execução do compilador.
+
+\section{Exemplos}
+
+Este documento foi entregue em conjunto com 4 exemplos de programas em CSet. Dentre eles, 2 contendo códigos lexicamente, sintaticamente e semanticamente corretos, e 2 com erros semânticos.
+
+\begin{itemize}
+\item Corretos: \textit{example(1,2).cset}
+\item Com erros: \textit{error\_example(1,2).cset}
+\end{itemize}
+
+Erros:
+\begin{itemize}
+\item Arquivo 1:
+\begin{itemize}
+\item Erro semantico linha 4. Tipos incompativeis na atribuicao.
+\item Erro semantivo linha 8. Condicao em while deve ter tipo bool.
+\item Erro semantico, linha 17. Tipo de argumento nao esperado.
+\end{itemize}
+
+\item Arquivo 2:
+\begin{itemize}
+\item Erro semantico, linha 6. Chamada a funcao nao definida!
+\item Erro semantico linha 7. O tipo do lado esquerdo da atribuicao nao pode ser avaliado.
+\item Erro semantico. Identificador `c' nao declarado.
+\end{itemize}
+\end{itemize}
+
+\section{Considerações finais}
+
+Para compilar o programa basta rodar \texttt{make} no diretório que o contém.
+Para executar: \texttt{./cset <input.file>}
+
+Algumas dificuldades foram enfrentadas que, inclusive, ocuparam muito tempo do desenvolvimento. 
+Uma das maiores foi a realização da checagem de tipo.
+
+\begin{thebibliography}{1}
+\bibitem{book}
+A.~V.~Abo, M.~S.~Lam, R.~Sethi, J.~D.~Ullman, \emph{Compilers - Principles, Techniques and Tools}
+\hskip 1em plus
+	0.5em minus 0.4em\relax 2nd ed. 1986
+
+\end{thebibliography}
+
+%------------------------------------------------
+
+\end{document}

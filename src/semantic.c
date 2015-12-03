@@ -49,6 +49,24 @@ type_t* findType(symb** first, char* id, int scope) {
 
 	return NULL;
 }
+
+type_t* findTypeFunc(symb** first, char* id) {
+	symb* aux;
+	aux = *first;
+
+	while(aux->next != NULL) {
+		if(strcmp(aux->id, id) == 0){
+			return aux->type;
+		}
+		aux = aux->next;
+	}
+
+	if(strcmp(aux->id, id) == 0){
+		return aux->type;
+	}
+
+	return NULL;
+}
 	
 
 
@@ -229,7 +247,7 @@ type_t* opHasType(symb** first, operation_t* node, int scope) {
 
 type_t* funccallHasType(symb** first, funccall_t* node, int scope) {
 	type_t* tp;
-	tp = findType(first, node->id, scope);
+	tp = findTypeFunc(first, node->id);
 
 	return tp;
 }
