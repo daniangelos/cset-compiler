@@ -67,25 +67,45 @@ type_t* findTypeFunc(symb** first, char* id) {
 
 	return NULL;
 }
-	
-
 
 char* type_tostring(type_t* tp_aux) {
 	char* tp;
-	if(tp_aux == NULL) {return "null";}
+	char* aux;
+	char* aux2;
+	size_t sz;
+	if(tp_aux == NULL) {return NULL;}
 	switch(tp_aux->activated){
 		case 0:
 			tp = malloc(sizeof(strlen(tp_aux->type.b_type)));
 			strcpy(tp, tp_aux->type.b_type);
 			return tp;
 		case 1:
-			tp = malloc(sizeof(4));
-			strcpy(tp, "set");
-			return tp;
+			aux = type_tostring((tp_aux->type.s_type->t));
+			if(aux != NULL) {
+				sz = strlen(aux) + 11;
+				tp = malloc(sz);
+				strcpy(tp, "set << ");
+				strcat(tp, aux);
+				strcat(tp, " >>");
+				return tp;
+			}
+			return NULL;
 		case 2:
-			tp = malloc(sizeof(5));
-			strcpy(tp, "pair");
-			return tp;
+			aux = type_tostring((tp_aux->type.p_type->t1));
+			aux2 = type_tostring(tp_aux->type.p_type->t2);
+			if(aux != NULL) {
+				if(aux2 != NULL) {
+					sz = strlen(aux) + strlen(aux2) + 15;
+					tp = malloc(sz);
+					strcpy(tp, "pair << ");
+					strcat(tp, aux);
+					strcat(tp, " , ");
+					strcat(tp, aux2);
+					strcat(tp, " >>");
+					return tp;
+				}
+			}
+			return NULL;
 		default:
 			return NULL;
 	}
@@ -116,7 +136,12 @@ int findFuncDecl (symb** first, char* id, identlist_t* identlist, int scope) {
 					tp1 = type_tostring(tp_aux);
 					tp2 = type_tostring(args->arg->type);
 					/*printf("primeiro tipo: %s segundo tipo: %s\n", tp1, tp2);*/
-					if(strcmp(tp1, tp2) != 0) return 3; // argumento i tipo inconsistente
+					if(tp1 != NULL && tp2 != NULL)
+						if(strcmp(tp1, tp2) != 0){
+							free(tp1);
+							free(tp2);
+						   	return 3; // argumento i tipo inconsistente
+						}
 				}
 				
 
@@ -132,7 +157,12 @@ int findFuncDecl (symb** first, char* id, identlist_t* identlist, int scope) {
 			if(tp_aux != NULL) {
 				tp1 = type_tostring(tp_aux);
 				tp2 = type_tostring(args->arg->type);
-				if(strcmp(tp1, tp2) != 0) return 3; // argumento i tipo inconsistente
+				if(tp1 != NULL && tp2 != NULL)
+					if(strcmp(tp1, tp2) != 0){
+						free(tp1);
+						free(tp2);
+						return 3; // argumento i tipo inconsistente
+					}
 			}
 
 			/*printf("tudo certo com a chamada desta funcao!\n");*/
@@ -186,10 +216,16 @@ int typeCheckAttr(symb** first, char* id, expr_t* expr, int scope){
 	if(tp1!=NULL){
 		if(tp2!=NULL){
 			if(strcmp(type_tostring(tp1), 
-						type_tostring(tp2)) != 0)
+						type_tostring(tp2)) != 0){
+				free(tp1);
+				free(tp2);
 				return 1; // tipos incompativeis
+			}
 		}
-		else return 2;
+		else {
+			free(tp1);
+			return 2;
+		}
 	}
 	else return 2;
 
@@ -209,7 +245,7 @@ int typeCheckCond(symb** first, expr_t* expr, int scope) {
 }
 
 type_t* exprHasType(symb** first, expr_t* node, int scope) {
-	type_t* tp;
+	type_t* tp = NULL;
 
 	switch(node->activated) {
 		case 0:
@@ -227,7 +263,7 @@ type_t* exprHasType(symb** first, expr_t* node, int scope) {
 }
 
 type_t* opHasType(symb** first, operation_t* node, int scope) {
-	type_t* tp;
+	type_t* tp = NULL;
 	int i = 0;
 	while(node->activated == 1) {
 		i++;
@@ -253,47 +289,88 @@ type_t* funccallHasType(symb** first, funccall_t* node, int scope) {
 }
 
 int isBool(type_t* tp) {
-	char* b = malloc(5);
+	char* b;
+   	size_t sz = strlen("bool") + 1;	
+	b = malloc(sz);
 	strcpy(b, "bool");
-	if(strcmp(b,type_tostring(tp)) != 0) return 0;
+	char* ts = type_tostring(tp);
+	if(ts != NULL)
+		if(strcmp(b,ts) != 0) {
+			free(b);
+			free(ts);
+			return 0;
+		}
+	free(b);
 	return 1;
 }
 
 int isInt (type_t* tp) {
-	char* i = malloc(4);
-	strcpy(i, "int");
+	char* b;
+   	size_t sz = strlen("int") + 1;	
+	b = malloc(sz);
+	strcpy(b, "int");
 	/*printf("%s\n", type_tostring(tp));*/
-	if(strcmp(i,type_tostring(tp)) == 0){ return 1;}
+	char* ts = type_tostring(tp);
+	if(ts!=NULL)
+		if(strcmp(b,ts) == 0){ 
+			free(b);
+			free(ts);
+			return 1;
+		}
+	free(b);
 	return 0;
 }
 
 int isFloat (type_t* tp) {
-	char* f = malloc(6);
+	char* f;
+   	size_t sz = strlen("float") + 1;	
+	f = malloc(sz);
 	strcpy(f, "float");
-	if(strcmp(f,type_tostring(tp)) != 0) return 0;
+	char* ts = type_tostring(tp);
+	if(ts!=NULL)
+		if(strcmp(f,ts) != 0) 
+		{
+			free(f);
+			free(ts);
+			return 0;
+		}
+	free(f);
 	return 1;
 }
 
 int isSet (type_t* tp) {
-	char* s = malloc(4);
-	strcpy(s, "set");
-	if(strcmp(s,type_tostring(tp)) != 0) return 0;
-	return 1;
+	char* ts = type_tostring(tp);
+	if(ts!=NULL)
+		if(ts[0] == 's'){
+			free(ts);
+			return 1;
+		}
+	return 0;
 }
 
 int isPair (type_t* tp) {
-	char* p = malloc(5);
+	char* p;
+	size_t sz = strlen("pair") + 1;
+	p = malloc(sz);
 	strcpy(p, "pair");
-	if(strcmp(p,type_tostring(tp)) != 0) return 0;
+	char* ts = type_tostring(tp);
+	if(ts!=NULL)
+		if(strcmp(p,ts) != 0) {
+			free(ts);
+			free(p);
+			return 0;
+		}
+	free(p);
 	return 1;
 }
 
 type_t* opbinHasType (symb** first, opbin_t* node, int scope) {
-	type_t* tp1;
-	type_t* tp2;
+	type_t* tp1 = NULL;
+	type_t* tp2 = NULL;
 	type_t* tbool = malloc(sizeof(type_t));
 	tbool->activated = 0;
-	tbool->type.b_type = malloc(5);
+	size_t sz = strlen("bool") + 1;
+	tbool->type.b_type = malloc(sz);
 	strcpy(tbool->type.b_type, "bool");
 
 	tp1 = opHasType(first, node->lhs, scope);
@@ -308,35 +385,88 @@ type_t* opbinHasType (symb** first, opbin_t* node, int scope) {
 			tp2 = NULL;
 	}
 
+	/*printf("%s %s\n",type_tostring(tp1), type_tostring(tp2));*/
 
 	if(node->op >= 0 && node->op <= 7){
-		if(strcmp(type_tostring(tp1), type_tostring(tp2)) != 0) return NULL;
-		return pType("bool");
+		char* aux1 = type_tostring(tp1);
+		char* aux2 = type_tostring(tp2);
+		if(aux1 == NULL || aux2 == NULL) {return NULL;}
+		else {
+			if (strcmp(aux1, aux2) == 0) { 
+				if(aux1!= NULL) free(aux1);
+				if(aux2 != NULL) free(aux2);
+				return tbool;
+			}
+		}
 	}
 	else if(node->op > 7 && node->op <= 11) {
+		free(tbool->type.b_type);
+		free(tbool);
 		if(isInt(tp1)) {
-			if(strcmp(type_tostring(tp1), type_tostring(tp2)) != 0) return NULL;
-			return tp1;
+			char* aux1 = type_tostring(tp1);
+			char* aux2 = type_tostring(tp2);
+			if(aux1 == NULL || aux2 == NULL) {if (strcmp(aux1, aux2) != 0) return NULL;}
+			else {
+				if(aux1!= NULL) free(aux1);
+				if(aux2 != NULL) free(aux2);
+				return tp1;
+			}
 		}
 		else if(isFloat(tp1)) {
-			if(strcmp(type_tostring(tp1), type_tostring(tp2)) != 0) return NULL;
-			return tp1;
+			char* aux1 = type_tostring(tp1);
+			char* aux2 = type_tostring(tp2);
+			if(aux1 == NULL || aux2 == NULL) {if (strcmp(aux1, aux2) != 0) return NULL;}
+			else {
+				if(aux1!= NULL) free(aux1);
+				if(aux2 != NULL) free(aux2);
+				return tp1;
+			}
+		}
+		else if(node->op != 10 && isSet(tp1)){
+			char* aux1 = type_tostring(tp1);
+			char* aux2 = type_tostring(tp2);
+			if(aux1 == NULL || aux2 == NULL) {if (strcmp(aux1, aux2) != 0) return NULL;}
+			else {
+				if(aux1!= NULL) free(aux1);
+				if(aux2 != NULL) free(aux2);
+				return tp1;
+			}
 		}
 	}
 	else if(node->op == 12){
 		if(isSet(tp2)) {
-			return tbool;
+			char* aux1 = type_tostring(tp1);
+			char* aux2 = type_tostring(tp2->type.s_type->t);
+			if(aux1 == NULL || aux2 == NULL) {if (strcmp(aux1, aux2) != 0) return NULL;}
+			else{
+				if(aux1!= NULL) free(aux1);
+				if(aux2 != NULL) free(aux2);
+				return tbool;
+			}
+			return NULL;
 		}
 
 	}
-	else { 
+	else { // PRODUTO CARTESIANO 
+		free(tbool->type.b_type);
+		free(tbool);
 		if(isSet(tp1)) {
-			if(strcmp(type_tostring(tp1), type_tostring(tp2)) != 0) return NULL;
-			return tp1;
+			if(isSet(tp2)) {
+				type_t* cart = malloc(sizeof(type_t));
+				type_t* pair = malloc(sizeof(type_t));
+				pair->activated = 2;
+				pair->type.p_type = malloc(sizeof(pairtype_t));
+				pair->type.p_type->t1 = tp1->type.s_type->t;
+				pair->type.p_type->t2 = tp2->type.s_type->t;
+				cart->activated = 1;
+				cart->type.s_type = malloc(sizeof(settype_t));
+				cart->type.s_type->t = pair;
+				return cart;
+			}
 		}
 	}
 
-	return tp1;
+	return NULL;
 }
 
 type_t* termHasType(symb** first, term_t* node, int scope) {
@@ -381,17 +511,39 @@ type_t* opunHasType(symb** first, opun_t* node, int scope) {
 
 type_t* factorlistHasType(symb** first, factorlist_t* node, int scope) {
 	type_t* tp;
+	type_t* tp1;
 	type_t* tp2;
+	type_t* tset;
+	tset = malloc(sizeof(type_t));
+	tset->activated = 1;
+	tset->type.s_type = malloc(sizeof(settype_t));
 
 	if(node->factorlist == NULL) {
 		tp = factorHasType(first, node->factor, scope);
-		return tp;
+		tset->type.s_type->t = tp;
+		return tset;
 	}
 	else {
 		tp2 = factorlistHasType(first, node->factorlist, scope);
+		if(tp2 != NULL) {
+			tp1 = tp2->type.s_type->t;
+		}
+		else tp1 = NULL;
 		tp = factorHasType(first, node->factor, scope);
-		if(strcmp(type_tostring(tp), type_tostring(tp2)) == 0) return tp;
+		char* aux1 = type_tostring(tp);
+		char* aux2 = type_tostring(tp1);
+		if(aux1 != NULL) {
+			if(aux2 != NULL) {
+				if(strcmp(aux1, aux2) == 0) {
+					tset->type.s_type->t = tp;
+					free(aux2);
+					return tset;
+				}
+			}
+			free(aux1);
+		}
 	}
+	free(tset);
 
 
 	return NULL;
@@ -400,14 +552,19 @@ type_t* factorlistHasType(symb** first, factorlist_t* node, int scope) {
 type_t* pairHasType(symb** first, pair_t* node, int scope) {
 	type_t* tp1;
 	type_t* tp2;
+	type_t* tp3 = malloc(sizeof(type_t));
 
 	tp1 = factorHasType(first, node->f1, scope);
 	tp2 = factorHasType(first, node->f2, scope);
 
-	if(strcmp(type_tostring(tp1), type_tostring(tp2)) == 0) return tp1;
+	tp3->activated = 2;
+	tp3->type.p_type = malloc(sizeof(pairtype_t*));
+	tp3->type.p_type->t1 = tp1;
+	tp3->type.p_type->t2 = tp2;
 
+		
 
-	return NULL;
+	return tp3;
 }
 
 type_t* pType(char* tpc) {

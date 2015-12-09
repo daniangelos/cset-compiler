@@ -1,0 +1,12 @@
+All:
+	- corrigir os erros de memória (meh ok)
+
+Semantico:
+	- verificar se sets e pairs estao sendo atribuidos corretamente ok!
+	- fazer a verificacao dos tipos de operacoes que sao validas com pair e set ok!
+	// O retorno de ophastype foi alterado pra NULL 
+
+Geracao de codigo:
+	- transformar expressoes em TAC ok
+	- pensar como sets e pairs serao representados em TAC
+	- 

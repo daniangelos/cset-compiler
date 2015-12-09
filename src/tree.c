@@ -14,7 +14,10 @@ void printSyntaxTree ( outset_t * node, int i ){
 		printSyntaxTree(node->outset, i+1);	
 	}
 
-	printFunctionTree(node->function, i+1);
+	if(node->activated == 1)
+		printFunctionTree(node->kind.function, i+1);
+	else
+		printDecl(node->kind.declaration, i+1);
 
 	free(node);
 
@@ -451,7 +454,282 @@ void printPair(pair_t* pair, int i) {
 	return ;
 }
 
+void destructTree(outset_t* node) {
+	if(node->outset != NULL) {
+		destructTree(node->outset);
+	}
 
+	if(node->activated == 1)
+		destructFunction(node->kind.function);
+	else
+		destructDeclaration(node->kind.declaration);
+	free(node);
+	return;
+}
+
+void destructFunction(function_t* node) {
+	destructType(node->type);
+	free(node->id);
+	destructArglist(node->arglist);
+	destructCompound(node->compoundstmt);
+	if(node->code != NULL) free(node->code);
+	free(node);
+	return;
+}
+
+void destructArglist(arglist_t* node) {
+	if(node!=NULL) {
+		if(node->arglist != NULL) {
+			destructArglist(node->arglist);
+		}
+		if(node->arg != NULL){ 
+			destructArg(node->arg);
+		}
+	}
+	free(node);
+	return;
+}
+
+void destructCompound(compoundstmt_t* node) {
+	destructStmtlist(node->stmt_list);
+	free(node);
+}
+
+void destructArg(arg_t* node) {
+	if(node!= NULL) {
+		destructType(node->type);
+		free(node->id);
+	}
+	free(node);
+}
+
+void destructStmtlist(stmtlist_t* node) {
+	if(node!= NULL) {
+		if(node->stmtlist != NULL) {
+			destructStmtlist(node->stmtlist);
+		}
+		destructStmt(node->stmt);
+	}
+	free(node);
+
+}
+
+void destructType(type_t* node) {
+	if(node!=NULL) {
+		switch(node->activated) {
+			case 0:
+				free(node->type.b_type);
+				break;
+			case 1:
+				destructSetType(node->type.s_type);
+				break;
+			case 2:
+				destructPairType(node->type.p_type);
+				break;
+		}
+	}
+	free(node);
+	return;
+}
+
+void destructStmt(stmt_t* node) {
+	switch(node->activated) {
+		case 0:
+			destructWhile(node->stmt.while_node);
+			break;
+		case 1:
+			destructExpr(node->stmt.expr_node);
+			break;
+		case 2:
+			destructIf(node->stmt.if_node);
+			break;
+		case 3:
+			destructCompound(node->stmt.cmp_node);
+			break;
+		case 4:
+			destructDeclaration(node->stmt.declaration_node);
+			break;
+		case 5:
+			destructIO(node->stmt.io_node);
+			break;
+		case 6:
+			destructReturn(node->stmt.return_node);
+			break;
+	}
+
+	free(node);
+	return;
+}
+
+void destructSetType(settype_t* node) {
+	destructType(node->t);
+	free(node);
+	return;
+}
+
+void destructPairType(pairtype_t* node){
+	destructType(node->t1);
+	destructType(node->t2);
+	free(node);
+	return;
+}
+
+void destructWhile(while_t* node) {
+	destructExpr(node->expr);
+	destructStmt(node->stmt);
+	/*if(node->code != NULL) free(node->code);*/
+	free(node);
+	return;
+}
+
+void destructIf(if_t* node){
+	destructExpr(node->expr);
+	destructCompound(node->cstmt);
+	if(node->else_node != NULL) {
+		destructStmt(node->else_node->stmt);
+		free(node->else_node);
+	}
+	/*if(node->code != NULL) free(node->code);*/
+	free(node);
+	return;
+}
+
+void destructDeclaration(declaration_t* node) {
+	destructType(node->type);
+	if(node->activated == 0) destructIdentlist(node->decl.identlist);
+	else destructAttr(node->decl.attr);
+	free(node);
+	return;
+}
+
+void destructIO (io_t* node) {
+	free(node->kind);
+	free(node->content);
+	free(node);
+}
+
+void destructReturn(return_t* node) {
+	destructExpr(node->expr);
+	free(node);
+	return;
+}
+
+void destructExpr(expr_t* node) {
+	switch(node->activated){
+		case 0:
+			destructAttr(node->expr.attr);
+			break;
+		case 1:
+			destructOperation(node->expr.operation);
+			break;
+		case 2:
+			destructFunccall(node->expr.funccall);
+			break;
+	}
+	destructType(node->type);
+	/*if(node->code != NULL) free(node->code);*/
+	free(node->code);
+	return;
+}
+
+void destructAttr(attr_t* node) {
+	free(node->id);
+	destructExpr(node->expr);
+	/*if(node->code != NULL) free(node->code);*/
+	free(node);
+	return;
+}
+
+void destructIdentlist(identlist_t* node){
+	if(node!=NULL){
+		free(node->id);
+		if(node->identlist != NULL) destructIdentlist(node->identlist);
+	}
+	free(node);
+	return;
+}
+
+void destructOperation(operation_t* node) {
+	switch(node->activated) {
+		case 0:
+			destructOpbin(node->kind.opbin);
+			break;
+		case 1:
+			destructOperation(node->kind.operation);
+			break;
+		case 2:
+			destructTerm(node->kind.term);
+			break;
+	}
+	/*if(node->code != NULL) free(node->code);*/
+	free(node);
+	return;
+}
+
+void destructOpbin(opbin_t* node) {
+	destructOperation(node->lhs);
+	if(node->activated == 0) destructOperation(node->rhs.rop);
+	else destructTerm(node->rhs.term);
+	free(node);
+	return;
+}
+
+void destructTerm(term_t* node){
+	switch(node->activated) {
+		case 0:
+			destructExpr(node->typeofterm.expr);
+			break;
+		case 1:
+			destructOpun(node->typeofterm.opun);
+			break;
+		case 2:
+			destructFactorlist(node->typeofterm.factorlist);
+			break;
+		case 3:
+			destructPair(node->typeofterm.pair);
+			break;
+		case 4:
+			destructFactor(node->typeofterm.factor);
+			break;
+	}
+	free(node);
+	return;
+}
+
+void destructOpun(opun_t* node){
+	destructTerm(node->term);
+	free(node);
+	return;
+}
+
+void destructFactor(factor_t* node) {
+	if(node->activated == 0) {
+		free(node->fac.id);
+	}
+	free(node);
+	return;
+}
+
+void destructFactorlist(factorlist_t* node) {
+	if(node->factorlist != NULL) destructFactorlist(node->factorlist);
+	destructFactor(node->factor);
+	free(node);
+}
+
+void destructPair(pair_t* node) {
+	destructFactor(node->f1);
+	destructFactor(node->f2);
+	free(node);
+	return;
+}
+
+void destructFunccall (funccall_t* node) {
+	free(node->id);
+	destructIdentlist(node->identlist);
+	/*if(node->code != NULL) free(node->code);*/
+	free(node);
+	return;
+}
 
 
 

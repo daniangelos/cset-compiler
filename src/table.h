@@ -22,6 +22,7 @@ typedef struct symb {
 void createTable(symb** first) ;
 int addSymbol (symb** first, char* content, type_t* type, int scope, functionsymb_t* function) ;
 void printTable(symb** first);
+void destructTable(symb** first);
 
 #endif //TABLE_H
 

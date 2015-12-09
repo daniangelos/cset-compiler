@@ -16,12 +16,12 @@ int boolean_to_int(char* boolv);
 
 int synerrors = 0;
 int semerrors = 0;
-int label = 0;
 
 symb** table;
 int scope = 0;
 char c;
-functionsymb_t* f_temp;
+functionsymb_t* f_temp = NULL;
+size_t sz;
 
 
 %}
@@ -141,35 +141,36 @@ program			: outset
 						/*printf("\n\n ****** Symbol Table ****** \n\n");*/
 						/*printTable(table);*/
 						generateCode(table, root);
-						/*destructTree(root);*/
-						/*destructTable(table);*/
 					}
+					destructTree(root);
+					/*destructTable(table);*/
 				}
 					
 
 outset		  	: outset function
 				{
 					outset_t* node = NEW(outset_t);
+					node->activated = 1;
 					node->outset = $1;
-					node->function = $2;
+					node->kind.function = $2;
 					$$ = node;
 				}
 				| declaration ';'
 				{
 					scope++;
 					outset_t* node = NEW(outset_t);
-					node->declaration = $1;
+					node->activated = 0;
+					node->kind.declaration = $1;
 					node->outset = NULL;
-					node->function = NULL;
 					$$ = node;
 					
 				}
 				| function
 		   		{ 	
 					outset_t* node = NEW(outset_t);
-					node->function = $1;
+					node->activated = 1;
+					node->kind.function = $1;
 					node->outset = NULL;
-					node->declaration = NULL;
 					$$ = node;
 				}
 			  	;
@@ -183,7 +184,7 @@ function	  	: type ID '(' arglist ')' compoundstmt
 					strcpy(node->id, $2);
 					node->arglist = $4;
 					node->compoundstmt = $6;
-					node->code = malloc(strlen($2) + 3);
+					node->code = malloc(strlen($2) + 6);
 					strcpy(node->code, "\n");
 					strcat(node->code, $2);
 					strcat(node->code, ": ");	
@@ -253,7 +254,8 @@ type			: K_INT
 	   			{
 					type_t* tp = NEW(type_t);
 					tp->activated = 0;
-					tp->type.b_type = malloc(4);
+					sz = strlen("int") + 1;
+					tp->type.b_type = malloc(sz);
 					strcpy(tp->type.b_type, "int");
 					$$ = tp;
 				}
@@ -261,7 +263,8 @@ type			: K_INT
 	   			{
 					type_t* tp = NEW(type_t);
 					tp->activated = 0;
-					tp->type.b_type = malloc(6);
+					sz = strlen("float") + 1;
+					tp->type.b_type = malloc(sz);
 					strcpy(tp->type.b_type, "float");
 					$$ = tp;
 				}
@@ -269,7 +272,8 @@ type			: K_INT
 	   			{
 					type_t* tp = NEW(type_t);
 					tp->activated = 0;
-					tp->type.b_type = malloc(5);
+					sz = strlen("char") + 1;
+					tp->type.b_type = malloc(sz);
 					strcpy(tp->type.b_type, "char");
 					$$ = tp;
 				}
@@ -277,7 +281,8 @@ type			: K_INT
 	   			{
 					type_t* tp = NEW(type_t);
 					tp->activated = 0;
-					tp->type.b_type = malloc(5);
+					sz = strlen("bool") + 1;
+					tp->type.b_type = malloc(sz);
 					strcpy(tp->type.b_type, "bool");
 					$$ = tp;
 				}
@@ -300,11 +305,11 @@ type			: K_INT
 				}
 				;
 
-stmtlist 		: stmtlist stmt
+stmtlist 		: stmt stmtlist 
 		   		{
 					stmtlist_t* node = NEW(stmtlist_t);
-					node->stmtlist = $1;
-					node->stmt = $2;
+					node->stmtlist = $2;
+					node->stmt = $1;
 					$$ = node;
 				}
 		   		| stmt 
@@ -372,17 +377,6 @@ whilestmt		: K_WHILE '(' expr ')' stmt
 					while_t* node = NEW(while_t);
 					node->expr = $3;
 					node->stmt = $5;
-					node->code = malloc(50);
-					label++;
-					char* str1 = malloc(strlen("label: if !expr goto whilenext\n") + 5);
-					sprintf(str1, "label%d: if !expr goto whilenext%d\n", label, label);
-					strcpy(node->code, str1);
-					strcat(node->code, "stmt code\n");
-					char* str2 = malloc(strlen("goto labelx"));
-					sprintf(str2,"goto label%d\n", label);
-					strcat(node->code, str2);
-					sprintf(str2, "whilenext%d:",label);
-					strcat(node->code, str2);
 					/*free(str1);*/
 					/*free(str2);*/
 					/*printf("%s\n", node->code);*/
@@ -401,15 +395,6 @@ ifstmt 			: K_IF '(' expr ')' compoundstmt
 					node->expr = $3;
 					node->cstmt = $5;
 					node->else_node = NULL;
-					label++;
-					node->code = malloc(50);
-					char* str1 = malloc(strlen("if !expr goto ifnext\n") + 10);
-					sprintf(str1, "if !expr goto ifnext%d\n", label);
-					strcpy(node->code, str1);
-					strcat(node->code, "cmpstmt code\n");
-					char* str2 = malloc(strlen("goto labelx"));
-					sprintf(str2, "ifnext%d:",label);
-					strcat(node->code, str2);
 					/*free(str1);*/
 					/*free(str2);*/
 					/*printf("%s\n", node->code);*/
@@ -444,7 +429,7 @@ elsepart		: K_ELSE stmt
 declaration		: type attr
 			 	{
 					declaration_t* node = NEW(declaration_t);
-					int activated = 1;
+					node->activated = 1;
 					node->type = $1;
 					node->decl.attr = $2;
 					$$ = node;
@@ -452,11 +437,25 @@ declaration		: type attr
 						semerrors++;
 						printf("Erro semantico. Redeclaracao do identificador '%s'. Linha: %d\n", node->decl.attr->id, lines);	
 					}
+					switch(typeCheckAttr(table, $2->id, $2->expr, scope + 1)){
+					case 1:
+						semerrors++;
+						printf("Erro semantico linha %d. Tipos incompativeis na atribuicao.\n",lines);
+						break;
+					case 2:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado esquerdo da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					case 3:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado direito da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					}
 				}
 			 	| type identlist
 			 	{
 					declaration_t* node = NEW(declaration_t);
-					int activated = 0;
+					node->activated = 0;
 					node->type = $1;
 					node->decl.identlist = $2;
 					if(addSymbol(table, node->decl.identlist->id, $1, scope + 1, NULL)){
@@ -471,7 +470,8 @@ declaration		: type attr
 io				: K_PRINT '(' STR ')'
 	  			{
 					io_t* node = NEW(io_t);
-					node->kind = malloc(6);
+					sz = strlen("print") + 1;
+					node->kind = malloc(sz);
 					strcpy(node->kind, "print");
 					node->content = malloc(strlen($3)+1);
 					strcpy(node->content, $3);
@@ -480,7 +480,8 @@ io				: K_PRINT '(' STR ')'
 	  			| K_PRINT '(' ID ')'
 	  			{
 					io_t* node = NEW(io_t);
-					node->kind = malloc(6);
+					sz = strlen("print") + 1;
+					node->kind = malloc(sz);
 					strcpy(node->kind, "print");
 					node->content = malloc(strlen($3)+1);
 					strcpy(node->content, $3);
@@ -490,7 +491,8 @@ io				: K_PRINT '(' STR ')'
 				| K_READ '(' ID ')'
 	  			{
 					io_t* node = NEW(io_t);
-					node->kind = malloc(5);
+					sz = strlen("read") + 1;
+					node->kind = malloc(sz);
 					strcpy(node->kind, "read");
 					node->content = malloc(strlen($3)+1);
 					strcpy(node->content, $3);
@@ -521,6 +523,20 @@ expr 			: attr
 					node->type = NULL;
 					/*node->code = $1->code;*/
 					$$ = node;
+					switch(typeCheckAttr(table, $1->id, $1->expr, scope + 1)){
+					case 1:
+						semerrors++;
+						printf("Erro semantico linha %d. Tipos incompativeis na atribuicao.\n",lines);
+						break;
+					case 2:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado esquerdo da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					case 3:
+						semerrors++;
+						printf("Erro semantico linha %d. O tipo do lado direito da atribuicao nao pode ser avaliado.\n",lines);
+						break;
+					}
 				}
 				| rvalue
 				{
@@ -545,27 +561,12 @@ expr 			: attr
 attr 			: ID '=' expr
 				{
 					attr_t* node = NEW(attr_t);
-					node->id = malloc(strlen($1));
+					node->id = malloc(strlen($1) + 1);
 					strcpy(node->id, $1);
 					node->expr = $3;
 					/*node->code = malloc(strlen($3->code)+strlen($1)+6);*/
 					$$ = node;
 					addSymbol(table, $1, NULL, scope + 1, NULL);	
-					switch(typeCheckAttr(table, $1, $3, scope + 1)){
-					case 1:
-						semerrors++;
-						printf("Erro semantico linha %d. Tipos incompativeis na atribuicao.\n",lines);
-						break;
-					case 2:
-						semerrors++;
-						printf("Erro semantico linha %d. O tipo do lado esquerdo da atribuicao nao pode ser avaliado.\n",lines);
-						break;
-					case 3:
-						semerrors++;
-						printf("Erro semantico linha %d. O tipo do lado direito da atribuicao nao pode ser avaliado.\n",lines);
-						break;
-					}
-	
 				}
 				;
 
@@ -579,7 +580,7 @@ identlist 		: identlistlist
 identlistlist:	identlist ',' ID
 				{
 					identlist_t* node = NEW(identlist_t);
-					node->id = malloc(strlen($3));
+					node->id = malloc(strlen($3) + 1);
 					strcpy(node->id, $3);
 					node->identlist = $1;
 					$$ = node;
@@ -588,7 +589,7 @@ identlistlist:	identlist ',' ID
 				| ID
 				{
 					identlist_t* node = NEW(identlist_t);
-					node->id = malloc(strlen($1));
+					node->id = malloc(strlen($1)+1);
 					strcpy(node->id, $1);
 					node->identlist = NULL;
 					$$ = node;
@@ -950,10 +951,11 @@ funccall 		: ID '(' identlist ')'
 
 int main(int argc, char** argv)
 {
+	table = malloc(sizeof(symb));
+	*table = NULL;
 	if(argc > 1) {
         yyin = fopen(argv[1], "r");
     }
-	table = malloc(sizeof(symb));
 	yyparse();
 
 	return 0;

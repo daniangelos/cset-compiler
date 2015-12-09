@@ -6,6 +6,7 @@ int addSymbol (symb** first, char* content, type_t* type, int scope, functionsym
 	int fun = 1; 
 	if(function == NULL) fun = 0;
 
+
 	if(type != NULL && *first != NULL) { 
 		int err = checkTable(first, content, scope, fun);
 		if (err) { return err; }
@@ -88,3 +89,26 @@ void printTable (symb** first) {
 	return;
 
 }
+
+void destructTable  (symb** first) {
+	symb* aux;
+	aux = *first;
+
+	if(aux!=NULL) {
+		if(aux->next!= NULL) {
+			destructTable(&aux->next);
+		}
+
+		destructType(aux->type);
+		free(aux->id);
+		if(aux->function != NULL) {
+			destructType(aux->function->type_return);
+			/*if(aux->function->args != NULL)*/
+				/*destructArglist(aux->function->args);*/
+			free(aux->function);
+		}
+		free(aux);
+	}
+}
+
+

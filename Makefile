@@ -27,6 +27,21 @@ cset.o: cset.tab.c
 finish:
 	@echo "Evertything looks good!"
 
+teste: teste.o semantic.o tree.o 
+	gcc tree.o teste.o semantic.o -o tst
+
+teste.o: src/teste.c
+	gcc src/teste.c -g -c
+
+teste_not_error: examples/example1.cset
+	@./cset examples/example1.cset
+
+teste2_not_error: examples/example2.cset
+	@./cset examples/example2.cset
+
+valgrind_not_error: examples/example1.cset
+	@valgrind --leak-check=yes ./cset examples/example1.cset
+
 clean: 
 	rm lex.yy.c
 	rm cset.tab.*

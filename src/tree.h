@@ -39,8 +39,11 @@ typedef struct opbin_t opbin_t;
 
 struct outset_t {
 	outset_t* outset;
-	function_t* function;
-	declaration_t* declaration;
+	int activated;
+	union{
+		declaration_t* declaration;
+		function_t* function;
+	}kind;
 };
 
 struct function_t {
@@ -266,6 +269,32 @@ void printOpun ( opun_t* opun , int i) ;
 void printFactorlist ( factorlist_t* flist , int i ) ;
 void printFactor (factor_t* factor, int i ) ;
 void printPair(pair_t* pair, int i) ;
+void destructTree(outset_t* node);
 
+void destructFunction(function_t* node) ;
+void destructArglist(arglist_t* node) ;
+void destructCompound(compoundstmt_t* node) ;
+void destructArg(arg_t* node) ;
+void destructStmtlist(stmtlist_t* node) ;
+void destructType(type_t* node) ;
+void destructStmt(stmt_t* node) ;
+void destructSetType(settype_t* node) ;
+void destructPairType(pairtype_t* node);
+void destructWhile(while_t* node) ;
+void destructIf(if_t* node);
+void destructDeclaration(declaration_t* node) ;
+void destructIO (io_t* node) ;
+void destructReturn(return_t* node) ;
+void destructExpr(expr_t* node) ;
+void destructAttr(attr_t* node) ;
+void destructIdentlist(identlist_t* node);
+void destructOperation(operation_t* node) ;
+void destructOpbin(opbin_t* node) ;
+void destructTerm(term_t* node);
+void destructOpun(opun_t* node);
+void destructFactor(factor_t* node) ;
+void destructFactorlist(factorlist_t* node) ;
+void destructPair(pair_t* node) ;
+void destructFunccall (funccall_t* node) ;
 
 #endif //TREE_H
